@@ -282,13 +282,7 @@ function closeLPApp() {
 const { useState, useEffect, useCallback, useRef } = React;
 
 /* ─── 統合設定 ─── */
-let LINE_USER_ID = '';
-liff.init({ liffId: '2009924306-AGKLqoyb' })
-  .then(() => liff.getProfile())
-  .then(p => { LINE_USER_ID = p.userId; })
-  .catch(() => {
-    LINE_USER_ID = new URLSearchParams(location.search).get('lineUserId') || '';
-  });
+const LINE_USER_ID = new URLSearchParams(location.search).get('lineUserId') || '';
 const VERCEL_URL = 'https://line-e.vercel.app';
 const STRIPE_PK = 'pk_test_51TR3NoL3ISqlMA2vW58PvFGqFCKh4dO76a2ugIndI0iZ53c1tqVDaztkBEh7nc2lvsDoHpv2hEVgRpvcpErbWmXY00VYihPzRA';
 
