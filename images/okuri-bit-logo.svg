@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 80" role="img" aria-label="Okuri-Bit">
+  <!-- スラブセリフ系太字ディスプレイフォント再現 -->
+  <!-- 実画像: 極太黒セリフ体、currentColorで色制御可能 -->
+  <text x="2" y="66"
+    font-family="'Rockwell','Courier New','Trebuchet MS',Georgia,serif"
+    font-size="68"
+    font-weight="900"
+    fill="currentColor"
+    letter-spacing="-1"
+    style="font-stretch:normal;">Okuri-Bit</text>
+</svg>

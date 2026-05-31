@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>確認・お支払い — OKURIATO</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+  <style>
+    body { background: linear-gradient(135deg, #F3E8FF 0%, #FFF0F8 100%); min-height: 100vh; }
+    .page-wrapper { max-width: 680px; margin: 0 auto; padding: 28px 20px 120px; }
+
+    /* ===== Steps ===== */
+    .steps-bar { display:flex; align-items:center; justify-content:center; gap:0; margin-bottom:32px; }
+    .s-item { display:flex; flex-direction:column; align-items:center; gap:5px; }
+    .s-num { width:38px; height:38px; border-radius:50%; background:#e0e0e0; color:#aaa; font-weight:800; font-size:0.95rem; display:flex; align-items:center; justify-content:center; transition:all 0.3s; }
+    .s-item.active .s-num { background:var(--gradient); color:white; box-shadow:0 4px 12px rgba(255,107,157,0.4); }
+    .s-item.done .s-num { background:#4CAF50; color:white; }
+    .s-label { font-size:0.7rem; color:#aaa; font-weight:700; white-space:nowrap; }
+    .s-item.active .s-label, .s-item.done .s-label { color:var(--primary); }
+    .s-line { width:40px; height:2px; background:#e0e0e0; margin-bottom:20px; flex-shrink:0; }
+
+    /* ===== Panel ===== */
+    .panel { background:white; border-radius:24px; box-shadow:var(--shadow-card); padding:28px; margin-bottom:20px; }
+    .panel-title { font-size:1rem; font-weight:800; margin-bottom:18px; display:flex; align-items:center; gap:8px; }
+
+    /* ===== Summary Card ===== */
+    .summary-row { display:flex; align-items:center; gap:14px; padding:14px 0; border-bottom:1px solid #f5f5f5; }
+    .summary-row:last-child { border-bottom:none; }
+    .summary-icon { width:48px; height:48px; border-radius:14px; background:var(--bg); display:flex; align-items:center; justify-content:center; font-size:1.5rem; flex-shrink:0; }
+    .summary-key { font-size:0.78rem; color:var(--text-light); font-weight:700; margin-bottom:2px; }
+    .summary-val { font-weight:700; font-size:0.95rem; }
+
+    /* ===== Message preview ===== */
+    .message-preview {
+      background: linear-gradient(135deg,#FFF5F8,#F8F0FF);
+      border: 2px solid #e8d8ff;
+      border-radius: 16px;
+      padding: 16px 18px;
+      font-size: 0.9rem;
+      line-height: 1.75;
+      color: #333;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    /* ===== Payment options ===== */
+    .payment-options { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:18px; }
+    .pay-opt {
+      flex:1; min-width:120px;
+      padding:14px 10px;
+      border-radius:14px;
+      border:2px solid #eee;
+      background:white;
+      cursor:pointer;
+      text-align:center;
+      transition:all 0.2s;
+      font-family:inherit;
+    }
+    .pay-opt.active { border-color:var(--primary); background:#fff0f7; }
+    .pay-opt:hover { border-color:var(--primary); }
+    .pay-opt .pay-icon { font-size:1.6rem; display:block; margin-bottom:4px; }
+    .pay-opt .pay-name { font-size:0.78rem; font-weight:700; color:var(--text-light); }
+    .pay-opt.active .pay-name { color:var(--primary); }
+
+    /* ===== Card form ===== */
+    .card-input {
+      width:100%; padding:12px 14px;
+      border:2px solid #eee; border-radius:12px;
+      font-size:0.88rem; font-family:inherit; outline:none;
+      transition:border-color 0.2s; box-sizing:border-box;
+    }
+    .card-input:focus { border-color:var(--primary); }
+
+    /* ===== Price total ===== */
+    .price-summary { margin-top:20px; padding-top:16px; border-top:2px solid #f5f5f5; }
+    .price-row { display:flex; justify-content:space-between; align-items:center; font-size:0.9rem; margin-bottom:8px; }
+    .price-row.total { font-size:1.05rem; font-weight:800; border-top:2px solid #f5f5f5; padding-top:12px; margin-top:8px; }
+    .price-row.total span:last-child { color:var(--primary); }
+
+    /* ===== URL Box ===== */
+    .url-box {
+      background:#F8F0FF;
+      border:2px dashed var(--secondary);
+      border-radius:16px;
+      padding:20px;
+      text-align:center;
+    }
+    .url-text {
+      font-size:0.82rem;
+      color:var(--secondary);
+      font-weight:700;
+      word-break:break-all;
+      margin-bottom:14px;
+      background:white;
+      padding:10px 14px;
+      border-radius:10px;
+      font-family:monospace;
+    }
+    .share-buttons { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
+    .share-btn {
+      padding:10px 20px;
+      border-radius:50px;
+      font-size:0.88rem; font-weight:700;
+      cursor:pointer; border:none;
+      display:flex; align-items:center; gap:6px;
+      transition:all 0.2s; font-family:inherit;
+    }
+    .share-btn:hover { transform:translateY(-2px); }
+    .share-btn-line { background:#06C755; color:white; }
+    .share-btn-copy { background:#6366F1; color:white; }
+    .share-btn-mail { background:#EA4335; color:white; }
+
+    /* ===== Loading overlay ===== */
+    .loading-overlay {
+      position:fixed; inset:0; background:rgba(255,255,255,0.92);
+      z-index:999; display:none; align-items:center; justify-content:center; flex-direction:column; gap:16px;
+    }
+    .loading-overlay.show { display:flex; }
+    .spinner { width:56px; height:56px; border:5px solid #eee; border-top-color:var(--primary); border-radius:50%; animation:spin 1s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    /* ===== Bottom bar ===== */
+    .bottom-bar { position:fixed; bottom:0; left:0; right:0; background:white; box-shadow:0 -4px 24px rgba(0,0,0,0.09); padding:14px 24px; z-index:200; }
+    .bottom-bar-inner { max-width:680px; margin:0 auto; display:flex; gap:12px; align-items:center; }
+
+    /* ===== Section steps ===== */
+    .section-step { display:none; }
+    .section-step.active { display:block; }
+
+    /* ===== Confetti ===== */
+    .success-icon { font-size:3rem; animation:tada 1s ease-in-out; }
+
+    /* ===== No avatar badge ===== */
+    .no-avatar-badge {
+      display:inline-flex; align-items:center; gap:6px;
+      background:linear-gradient(135deg,#f0e8ff,#ffe8f5);
+      border:1.5px solid #d4b8f0; border-radius:12px;
+      padding:10px 16px; font-size:0.82rem; font-weight:700; color:#A855F7;
+      margin-bottom:18px; width:100%; box-sizing:border-box;
+    }
+
+    /* ===== Responsive ===== */
+    @media (max-width:767px) {
+      .page-wrapper { padding:20px 14px 120px; }
+      .s-num { width:30px; height:30px; font-size:0.8rem; }
+      .s-label { font-size:0.62rem; }
+      .s-line { width:20px; }
+      .panel { padding:18px 14px; border-radius:18px; }
+      .payment-options { gap:8px; }
+      .pay-opt { min-width:0; padding:12px 6px; }
+      .pay-opt .pay-icon { font-size:1.4rem; }
+      .pay-opt .pay-name { font-size:0.7rem; }
+      .share-buttons { gap:8px; }
+      .share-btn { font-size:0.82rem; padding:9px 14px; }
+      .bottom-bar { padding:10px 14px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <div style="font-weight:700; color:var(--text-light);">ギフトを準備中...</div>
+</div>
+
+<header class="site-header">
+  <div class="header-inner">
+    <a href="index.html" class="logo">
+      
+      <span class="logo-text">OKURIATO</span>
+    </a>
+    <nav class="header-nav">
+      <a href="community.html" class="btn btn-outline"><i class="fas fa-users"></i> みんなの投稿</a>
+      <a href="giftalk.html" class="btn btn-outline" style="border-color:var(--secondary);color:var(--secondary);"><i class="fas fa-robot"></i> Giftalk</a>
+    </nav>
+    <button class="nav-hamburger" id="navHamburger" onclick="toggleDrawer()" aria-label="メニュー">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+<div class="nav-drawer" id="navDrawer">
+  <div class="nav-drawer-backdrop" onclick="closeDrawer()"></div>
+  <div class="nav-drawer-panel">
+    <a href="gift.html" class="nav-drawer-link primary"><i class="fas fa-gift"></i> ギフトを贈る</a>
+    <a href="community.html" class="nav-drawer-link"><i class="fas fa-users"></i> みんなの投稿</a>
+    <a href="giftalk.html" class="nav-drawer-link" style="color:var(--secondary);"><i class="fas fa-robot"></i> Giftalk</a>
+    <a href="index.html" class="nav-drawer-link"><i class="fas fa-home"></i> トップ</a>
+  </div>
+</div>
+
+<div class="page-wrapper">
+
+  <!-- Steps -->
+  <div class="steps-bar">
+    <div class="s-item done"><div class="s-num"><i class="fas fa-check" style="font-size:0.8rem;"></i></div><div class="s-label">ギフト選択</div></div>
+    <div class="s-line"></div>
+    <div class="s-item done"><div class="s-num"><i class="fas fa-check" style="font-size:0.8rem;"></i></div><div class="s-label">メッセージ</div></div>
+    <div class="s-line"></div>
+    <div class="s-item active" id="step3Item"><div class="s-num">3</div><div class="s-label">確認・送信</div></div>
+  </div>
+
+  <!-- アバターなし表示 -->
+  <div class="no-avatar-badge">
+    <span>🎁</span>
+    <span>アバターなしモード — ギフトとメッセージだけで贈ります</span>
+  </div>
+
+  <!-- STEP: 確認内容 + 支払い -->
+  <div class="section-step active" id="stepPayment">
+
+    <!-- 内容確認 -->
+    <div class="panel">
+      <div class="panel-title">🎁 内容を確認</div>
+      <div class="summary-row">
+        <div class="summary-icon" id="sumGiftEmoji">🎁</div>
+        <div style="flex:1;">
+          <div class="summary-key">ギフト</div>
+          <div class="summary-val" id="sumGiftName">—</div>
+        </div>
+        <div style="font-weight:800; color:var(--primary);" id="sumGiftPrice">—</div>
+      </div>
+      <div class="summary-row">
+        <div class="summary-icon">👤</div>
+        <div>
+          <div class="summary-key">送り手</div>
+          <div class="summary-val" id="sumSenderName">—</div>
+        </div>
+      </div>
+      <div class="summary-row">
+        <div class="summary-icon">🎯</div>
+        <div>
+          <div class="summary-key">受け取り手</div>
+          <div class="summary-val" id="sumRecipientName">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- メッセージ確認 -->
+    <div class="panel">
+      <div class="panel-title">💌 メッセージ内容</div>
+      <div class="message-preview" id="messagePreview">—</div>
+    </div>
+
+    <!-- 支払い -->
+    <div class="panel">
+      <div class="panel-title">💳 お支払い方法</div>
+      <div class="payment-options">
+        <button class="pay-opt active" onclick="selectPay('card',this)">
+          <span class="pay-icon">💳</span>
+          <div class="pay-name">クレジット</div>
+        </button>
+        <button class="pay-opt" onclick="selectPay('paypay',this)">
+          <span class="pay-icon">📱</span>
+          <div class="pay-name">PayPay</div>
+        </button>
+        <button class="pay-opt" onclick="selectPay('linepay',this)">
+          <span class="pay-icon">💚</span>
+          <div class="pay-name">LINE Pay</div>
+        </button>
+        <button class="pay-opt" onclick="selectPay('convenience',this)">
+          <span class="pay-icon">🏪</span>
+          <div class="pay-name">コンビニ</div>
+        </button>
+      </div>
+
+      <div id="cardForm">
+        <div style="display:grid; gap:12px;">
+          <div>
+            <label style="font-size:0.78rem; font-weight:700; color:var(--text-light); margin-bottom:6px; display:block;">カード番号</label>
+            <input type="text" class="card-input" placeholder="1234 5678 9012 3456" maxlength="19" id="cardNum" oninput="formatCard(this)">
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+            <div>
+              <label style="font-size:0.78rem; font-weight:700; color:var(--text-light); margin-bottom:6px; display:block;">有効期限</label>
+              <input type="text" class="card-input" placeholder="MM / YY" maxlength="7" id="cardExp">
+            </div>
+            <div>
+              <label style="font-size:0.78rem; font-weight:700; color:var(--text-light); margin-bottom:6px; display:block;">CVV</label>
+              <input type="text" class="card-input" placeholder="123" maxlength="3" id="cardCvv">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="otherPayMsg" style="display:none; padding:16px; background:var(--bg); border-radius:12px; text-align:center; color:var(--text-light); font-size:0.88rem; margin-top:12px;">
+        ※ このデモではカード決済以外も即時完了となります
+      </div>
+
+      <div class="price-summary">
+        <div class="price-row">
+          <span style="color:var(--text-light);">ギフト金額</span>
+          <span id="payGiftPrice" style="font-weight:700;">—</span>
+        </div>
+        <div class="price-row">
+          <span style="color:var(--text-light);">サービス手数料</span>
+          <span style="font-weight:700;">¥300</span>
+        </div>
+        <div class="price-row total">
+          <span>合計</span>
+          <span id="payTotal">—</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 発行URLパネル（送信後に表示） -->
+    <div class="panel" id="urlPanel" style="display:none;">
+      <div class="panel-title"><span class="success-icon">🎉</span> URLが発行されました！</div>
+      <p style="color:var(--text-light); font-size:0.88rem; margin-bottom:16px; line-height:1.7;">
+        下記のURLを相手に送ってください。ギフトとメッセージが届きます💌
+      </p>
+      <div class="url-box">
+        <div class="url-text" id="shareUrlText">—</div>
+        <div class="share-buttons">
+          <button class="share-btn share-btn-line" onclick="shareViaLine()">
+            <i class="fas fa-comment"></i> LINEで送る
+          </button>
+          <button class="share-btn share-btn-copy" onclick="copyUrl()">
+            <i class="fas fa-copy"></i> コピー
+          </button>
+          <button class="share-btn share-btn-mail" onclick="shareViaMail()">
+            <i class="fas fa-envelope"></i> メールで送る
+          </button>
+        </div>
+      </div>
+      <div style="margin-top:16px; text-align:center;">
+        <a href="reactions.html" class="btn btn-secondary">
+          <i class="fas fa-bell"></i> リアクションを確認する
+        </a>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- Bottom Bar -->
+<div class="bottom-bar" id="bottomBar">
+  <div class="bottom-bar-inner">
+    <button class="btn btn-outline" id="backBtn" onclick="goBack()">
+      <i class="fas fa-arrow-left"></i> 戻る
+    </button>
+    <button class="btn btn-primary" style="flex:1; justify-content:center;" id="nextBtn" onclick="processPayment()">
+      決済して贈る 🎁
+    </button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== State =====
+const gift = JSON.parse(sessionStorage.getItem('selectedGift') || '{}');
+const senderName = sessionStorage.getItem('senderName') || '';
+const recipientName = sessionStorage.getItem('recipientName') || '';
+const message = sessionStorage.getItem('simpleMessage') || '';
+const _cartMode     = sessionStorage.getItem('cartMode') || 'full';
+const _allCartItems  = JSON.parse(sessionStorage.getItem('allCartItems') || '[]');
+const _isChoiceMode  = _cartMode === 'choice' && _allCartItems.length >= 2;
+const _displayPrice  = _isChoiceMode
+  ? (_allCartItems[0] ? _allCartItems[0].price : (gift.price || 0))
+  : (gift.price || 0);
+const _priceLabel = _isChoiceMode ? '（1点分）' : '';
+
+let selectedPay = 'card';
+let generatedOrderId = null;
+let generatedUrl = null;
+
+// ===== Init =====
+function init() {
+  document.getElementById('sumGiftEmoji').textContent = gift.emoji || '🎁';
+  document.getElementById('sumGiftName').textContent = _isChoiceMode
+    ? `選べるギフト × ${_allCartItems.length}点`
+    : (gift.name || '—');
+  document.getElementById('sumGiftPrice').textContent = _displayPrice
+    ? '¥' + _displayPrice.toLocaleString() + _priceLabel
+    : '—';
+  document.getElementById('sumSenderName').textContent = senderName || '—';
+  document.getElementById('sumRecipientName').textContent = recipientName || '—';
+  document.getElementById('messagePreview').textContent = message || '—';
+  document.getElementById('payGiftPrice').textContent = _displayPrice
+    ? '¥' + _displayPrice.toLocaleString()
+    : '—';
+  const total = _displayPrice + 300;
+  document.getElementById('payTotal').textContent = '¥' + total.toLocaleString();
+}
+
+// ===== Payment =====
+function selectPay(val, el) {
+  selectedPay = val;
+  document.querySelectorAll('.pay-opt').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('cardForm').style.display = val === 'card' ? 'block' : 'none';
+  document.getElementById('otherPayMsg').style.display = val !== 'card' ? 'block' : 'none';
+}
+
+function formatCard(input) {
+  let v = input.value.replace(/\D/g,'').substring(0,16);
+  input.value = v.replace(/(.{4})/g,'$1 ').trim();
+}
+
+async function processPayment() {
+  const nextBtn = document.getElementById('nextBtn');
+  nextBtn.disabled = true;
+  nextBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 処理中...';
+  document.getElementById('loadingOverlay').classList.add('show');
+
+  await new Promise(r => setTimeout(r, 2000));
+
+  try {
+    const orderId = 'order_' + Date.now() + '_' + Math.random().toString(36).substr(2,6);
+    const baseOrigin = window.location.origin;
+    const basePath = window.location.pathname.replace(/\/[^/]*$/, '/');
+
+    const orderPayload = {
+      id: orderId,
+      sender_name: senderName,
+      recipient_name: recipientName,
+      gift_name: _isChoiceMode
+        ? _allCartItems.map(x => x.name.split('/').pop().trim()).join(' / ')
+        : (gift.name || ''),
+      gift_emoji: gift.emoji || (_allCartItems[0] && _allCartItems[0].emoji) || '🎁',
+      gift_price: _displayPrice,
+      gift_brand: gift.brand || '',
+      gift_desc: gift.desc || '',
+      gift_is_set: _isChoiceMode ? 1 : 0,
+      gift_set_items: _isChoiceMode ? JSON.stringify(_allCartItems) : '',
+      cart_mode: _cartMode,
+      message: message,
+      status: 'pending'
+    };
+
+    // URLにデータをBase64エンコードして埋め込む（バックエンド不要）
+    const raw = btoa(unescape(encodeURIComponent(JSON.stringify(orderPayload))));
+    const encoded = raw.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+    const shareUrl = baseOrigin + basePath + 'receive-simple.html?d=' + encoded;
+
+    // バックエンドが存在する場合は保存も試みる
+    fetch('tables/orders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(orderPayload)
+    }).catch(() => {});
+
+    generatedOrderId = orderId;
+    generatedUrl = shareUrl;
+    sessionStorage.setItem('lastOrderId', orderId);
+    sessionStorage.setItem('lastShareUrl', shareUrl);
+
+  } catch (e) {
+    generatedOrderId = 'order_' + Date.now();
+    const baseOrigin = window.location.origin;
+    const basePath = window.location.pathname.replace(/\/[^/]*$/, '/');
+    generatedUrl = baseOrigin + basePath + 'receive-simple.html?d=error';
+  }
+
+  document.getElementById('loadingOverlay').classList.remove('show');
+  showSuccessUI();
+}
+
+function showSuccessUI() {
+  document.getElementById('urlPanel').style.display = 'block';
+  document.getElementById('shareUrlText').textContent = generatedUrl;
+  document.getElementById('nextBtn').style.display = 'none';
+  document.getElementById('backBtn').style.display = 'none';
+  launchConfetti();
+  showToast('🎉 ギフトが準備できました！');
+}
+
+// ===== Share =====
+function shareViaLine() {
+  const msg = '🎁 あなたにギフトが届いています！\n' + generatedUrl;
+  window.location.assign('https://line.me/R/msg/text/?' + encodeURIComponent(msg));
+}
+function copyUrl() {
+  navigator.clipboard.writeText(generatedUrl).then(() => {
+    showToast('✅ URLをコピーしました！');
+  }).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = generatedUrl;
+    document.body.appendChild(ta); ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast('✅ URLをコピーしました！');
+  });
+}
+function shareViaMail() {
+  const subject = encodeURIComponent('🎁 ' + senderName + 'からギフトが届いています！');
+  const body = encodeURIComponent(recipientName + 'さんへ\n\n' + senderName + 'からギフトが届いています！\n下記のURLから受け取ってください✨\n\n' + generatedUrl + '\n\n- OKURIATO');
+  window.location.assign('mailto:?subject=' + subject + '&body=' + body);
+}
+
+// ===== Navigation =====
+function goBack() {
+  window.location.href = 'message-simple.html';
+}
+
+// ===== Utils =====
+function getSenderId() {
+  let id = localStorage.getItem('obt_sender_id');
+  if (!id) { id = 'sender_' + Date.now(); localStorage.setItem('obt_sender_id', id); }
+  return id;
+}
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ===== Confetti =====
+function launchConfetti() {
+  const colors = ['#FF6B9D','#A855F7','#FFD700','#FF8C42','#4CAF50','#64B5F6'];
+  for (let i = 0; i < 60; i++) {
+    setTimeout(() => {
+      const p = document.createElement('div');
+      p.className = 'confetti-piece';
+      p.style.left = Math.random() * 100 + 'vw';
+      p.style.top = '-10px';
+      p.style.background = colors[Math.floor(Math.random() * colors.length)];
+      p.style.width = (6 + Math.random() * 8) + 'px';
+      p.style.height = (6 + Math.random() * 8) + 'px';
+      p.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+      p.style.animationDuration = (2 + Math.random() * 2) + 's';
+      p.style.animationDelay = Math.random() * 0.5 + 's';
+      document.body.appendChild(p);
+      setTimeout(() => p.remove(), 4000);
+    }, i * 30);
+  }
+}
+
+init();
+</script>
+<script>
+function toggleDrawer(){const d=document.getElementById('navDrawer'),h=document.getElementById('navHamburger');d.classList.toggle('open');h.classList.toggle('open');document.body.style.overflow=d.classList.contains('open')?'hidden':'';}
+function closeDrawer(){const d=document.getElementById('navDrawer'),h=document.getElementById('navHamburger');d.classList.remove('open');h.classList.remove('open');document.body.style.overflow='';}
+</script>
+</body>
+</html>

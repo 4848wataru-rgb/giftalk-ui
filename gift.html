@@ -1,0 +1,2499 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ギフトを選ぶ — OKURIATO</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+  <style>
+    body { background: #F5F0FF; }
+
+    /* ===== Page Tabs ===== */
+    .page-tab-bar {
+      background: white;
+      border-bottom: 2px solid #f0e8ff;
+      position: sticky;
+      top: 70px;
+      z-index: 90;
+    }
+    .page-tab-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      gap: 0;
+      overflow-x: auto;
+      scrollbar-width: none;
+      padding: 0 20px;
+    }
+    .page-tab-inner::-webkit-scrollbar { display: none; }
+    .page-tab {
+      flex-shrink: 0;
+      padding: 16px 24px;
+      font-size: 0.9rem;
+      font-weight: 800;
+      color: #aaa;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+      transition: all 0.2s;
+      white-space: nowrap;
+      background: none;
+      border-top: none;
+      border-left: none;
+      border-right: none;
+      font-family: inherit;
+    }
+    .page-tab.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+    .page-tab:hover:not(.active) { color: #666; }
+
+    /* ===== Tab Panels ===== */
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ===========================
+       TAB 1: EMOTION SELECT
+       =========================== */
+    .emotion-hero {
+      background: linear-gradient(135deg, #0f0c29 0%, #302b63 60%, #24243e 100%);
+      padding: 56px 24px 44px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .emotion-hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse 70% 50% at 50% 50%, rgba(168,85,247,0.2) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .emotion-hero h2 {
+      font-size: clamp(1.6rem, 4vw, 2.6rem);
+      font-weight: 900; color: white;
+      margin-bottom: 10px; position: relative;
+    }
+    .emotion-hero p {
+      color: rgba(255,255,255,0.7);
+      font-size: 0.95rem; position: relative; line-height: 1.7;
+    }
+
+    .emotion-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 14px;
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 40px 24px;
+    }
+    .emotion-card {
+      background: white;
+      border: 2px solid #ece4ff;
+      border-radius: 22px;
+      padding: 22px 12px 18px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.25s;
+    }
+    .emotion-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 14px 36px rgba(168,85,247,0.22);
+      border-color: #A855F7;
+    }
+    .emotion-card.active {
+      background: linear-gradient(135deg, #FF6B9D, #A855F7);
+      border-color: transparent;
+      transform: translateY(-5px);
+      box-shadow: 0 14px 36px rgba(255,107,157,0.4);
+    }
+    .ec-emoji { font-size: 2.4rem; display: block; margin-bottom: 9px; }
+    .ec-label { font-size: 0.9rem; font-weight: 800; color: #333; }
+    .emotion-card.active .ec-label { color: white; }
+    .ec-sub { font-size: 0.7rem; color: #aaa; margin-top: 3px; }
+    .emotion-card.active .ec-sub { color: rgba(255,255,255,0.75); }
+
+    /* Proposal area */
+    .proposal-area {
+      background: white;
+      padding: 0 24px 60px;
+    }
+    .proposal-inner { max-width: 1100px; margin: 0 auto; }
+    .proposal-title-bar {
+      display: flex; align-items: center; gap: 12px;
+      padding: 32px 0 24px;
+      flex-wrap: wrap;
+    }
+    .emotion-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: linear-gradient(135deg, #FF6B9D, #A855F7);
+      color: white; padding: 8px 20px; border-radius: 50px;
+      font-size: 0.9rem; font-weight: 800;
+    }
+    .proposal-subtitle { color: #888; font-size: 0.88rem; }
+
+    /* === Emotion filter bar === */
+    .ep-filter-bar {
+      background: #f9f5ff; border: 1px solid #ede4ff;
+      border-radius: 16px; padding: 14px 18px;
+      margin-bottom: 22px; display: flex; flex-direction: column; gap: 10px;
+    }
+    .ep-filter-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .ep-filter-label { font-size: 0.75rem; font-weight: 800; color: #A855F7; white-space: nowrap; min-width: 52px; }
+    .ep-chips { display: flex; gap: 7px; flex-wrap: wrap; }
+    .ep-empty { text-align:center; color:#bbb; padding:32px 0; font-size:0.88rem; grid-column:1/-1; }
+
+    /* === Single gifts row === */
+    .proposal-block { margin-bottom: 40px; }
+    .proposal-block-title {
+      font-size: 1rem; font-weight: 800; color: #333;
+      margin-bottom: 16px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .pb-badge {
+      font-size: 0.68rem; font-weight: 800;
+      padding: 2px 8px; border-radius: 8px; color: white;
+    }
+    .pb-badge.single { background: #FF6B9D; }
+    .pb-badge.set { background: #A855F7; }
+
+    .single-gifts-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 14px;
+    }
+    .proposal-gift-card {
+      background: linear-gradient(145deg, #FFF5F8, #F8F0FF);
+      border: 2px solid transparent;
+      border-radius: 20px;
+      padding: 18px 14px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.25s;
+      position: relative;
+      overflow: hidden;
+    }
+    .proposal-gift-card:hover {
+      border-color: var(--primary);
+      transform: translateY(-4px);
+      box-shadow: 0 12px 32px rgba(255,107,157,0.18);
+    }
+    .proposal-gift-card.selected {
+      border-color: var(--primary);
+      background: linear-gradient(145deg, #FFF0F7, #F0E8FF);
+      box-shadow: 0 8px 28px rgba(255,107,157,0.25);
+    }
+    .pgc-emoji { font-size: 2.2rem; margin-bottom: 8px; display: block; }
+    .pgc-name { font-size: 0.85rem; font-weight: 800; margin-bottom: 4px; }
+    .pgc-price { color: var(--primary); font-weight: 800; font-size: 0.82rem; }
+    .pgc-desc { font-size: 0.7rem; color: #aaa; margin-top: 3px; }
+    .pgc-sel-mark {
+      position: absolute; top: 8px; right: 8px;
+      width: 20px; height: 20px;
+      background: var(--primary); color: white;
+      border-radius: 50%; font-size: 0.6rem;
+      display: none; align-items: center; justify-content: center;
+      font-weight: 900;
+    }
+    .proposal-gift-card.selected .pgc-sel-mark { display: flex; }
+
+    /* === Set gift cards === */
+    .set-gifts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 20px;
+    }
+    .set-card {
+      background: white;
+      border-radius: 22px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+      overflow: hidden;
+      border: 2px solid transparent;
+      transition: all 0.3s;
+    }
+    .set-card:hover { border-color: #A855F7; box-shadow: 0 12px 40px rgba(168,85,247,0.18); }
+    .set-card.selected { border-color: #FF6B9D; box-shadow: 0 12px 40px rgba(255,107,157,0.28); }
+    .set-card-header {
+      background: linear-gradient(135deg, #A855F7, #7c3aed);
+      padding: 13px 18px;
+      display: flex; align-items: center; justify-content: space-between;
+      color: white;
+    }
+    .set-card.alt-header .set-card-header { background: linear-gradient(135deg, #FF6B9D, #e0558a); }
+    .set-card-label { font-size: 0.78rem; font-weight: 800; opacity: 0.9; }
+    .set-card-price { font-size: 1.05rem; font-weight: 900; }
+    .set-items-row {
+      display: grid; grid-template-columns: repeat(3,1fr);
+    }
+    .set-item {
+      padding: 15px 8px;
+      text-align: center;
+      border-right: 1px solid #f5f5f5;
+      cursor: pointer;
+      transition: background 0.2s;
+      position: relative;
+    }
+    .set-item:last-child { border-right: none; }
+    .set-item:hover { background: #fef0f7; }
+    .set-item.item-hl { background: #fef0f7; }
+    .set-item.item-hl::after {
+      content: '✓';
+      position: absolute; top: 5px; right: 6px;
+      color: var(--primary); font-size: 0.78rem; font-weight: 900;
+    }
+    .si-emoji { font-size: 1.9rem; display: block; margin-bottom: 5px; }
+    .si-name { font-size: 0.75rem; font-weight: 700; }
+    .si-desc { font-size: 0.65rem; color: #aaa; margin-top: 2px; }
+    .set-card-footer {
+      padding: 12px 16px;
+      border-top: 1px solid #f5f5f5;
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    }
+    .set-hint { font-size: 0.75rem; color: #aaa; }
+    .set-hint strong { color: #A855F7; }
+
+    /* =====================
+       TAB 2: ALL GIFTS (single + set tabs inside)
+       ===================== */
+    .all-gifts-section { padding: 32px 24px 80px; max-width: 1100px; margin: 0 auto; }
+
+    .inner-tab-bar {
+      display: flex; gap: 10px; flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+    .inner-tab {
+      padding: 10px 22px; border-radius: 50px;
+      font-size: 0.88rem; font-weight: 800;
+      cursor: pointer;
+      border: 2px solid #e0d4f7;
+      background: white; color: #A855F7;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+    .inner-tab.active {
+      background: linear-gradient(135deg, #A855F7, #7c3aed);
+      color: white; border-color: transparent;
+      box-shadow: 0 4px 14px rgba(168,85,247,0.4);
+    }
+    .inner-tab:hover:not(.active) { background: #f5eeff; }
+    .inner-panel { display: none; }
+    .inner-panel.active { display: block; }
+
+    /* Filter row */
+    .filter-row {
+      display: flex; gap: 8px; flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+    .filter-chip {
+      padding: 7px 18px; border-radius: 50px;
+      font-size: 0.82rem; font-weight: 700;
+      cursor: pointer;
+      border: 2px solid #e8e8e8; background: white; color: #888;
+      transition: all 0.2s; font-family: inherit;
+    }
+    .filter-chip.active {
+      background: var(--gradient); color: white; border-color: transparent;
+      box-shadow: 0 4px 12px rgba(255,107,157,0.3);
+    }
+    .filter-chip:hover:not(.active) { border-color: var(--primary); color: var(--primary); }
+    .price-row {
+      display: flex; gap: 8px; flex-wrap: wrap;
+      margin-bottom: 22px;
+    }
+    .price-chip {
+      padding: 5px 14px; border-radius: 50px;
+      font-size: 0.78rem; font-weight: 700;
+      cursor: pointer;
+      border: 2px solid #e8e8e8; background: white; color: #888;
+      transition: all 0.2s; font-family: inherit;
+    }
+    .price-chip.active { border-color: var(--secondary); color: var(--secondary); background: #f5ecff; }
+
+    .sort-row {
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 18px; flex-wrap: wrap;
+    }
+    .sort-label { font-size: 0.78rem; font-weight: 700; color: #999; white-space: nowrap; }
+    .sort-chip {
+      padding: 5px 14px; border-radius: 50px;
+      font-size: 0.78rem; font-weight: 700;
+      border: 1.5px solid #e0d4f7; color: #aaa;
+      background: white; cursor: pointer;
+      transition: all 0.2s; font-family: inherit;
+    }
+    .sort-chip.active { border-color: #A855F7; color: #A855F7; background: #f5ecff; }
+    .sort-chip:hover:not(.active) { border-color: #A855F7; color: #A855F7; }
+
+    .search-wrap { position: relative; max-width: 460px; margin-bottom: 22px; }
+    .search-wrap input {
+      width: 100%; padding: 11px 16px 11px 40px;
+      border: 2px solid #eee; border-radius: 50px;
+      font-size: 0.88rem; outline: none; transition: border-color 0.2s;
+      font-family: inherit;
+    }
+    .search-wrap input:focus { border-color: var(--primary); }
+    .search-wrap .si { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #bbb; }
+
+    /* Single gift grid */
+    .gifts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 16px;
+    }
+    /* All-sets grid */
+    .all-sets-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 22px;
+    }
+    .empty-state { text-align: center; padding: 56px 20px; color: #aaa; }
+    .empty-state .es-icon { font-size: 2.8rem; margin-bottom: 10px; }
+
+    /* =====================
+       Selected banner (bottom)
+       ===================== */
+    .sel-banner {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: white;
+      box-shadow: 0 -4px 24px rgba(0,0,0,0.1);
+      padding: 14px 24px;
+      z-index: 200;
+      transform: translateY(100%);
+      transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .sel-banner.visible { transform: translateY(0); }
+    .sel-banner-inner {
+      max-width: 720px; margin: 0 auto;
+      display: flex; align-items: center; gap: 14px;
+    }
+    .sel-preview {
+      display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0;
+    }
+    .sel-emojibox {
+      font-size: 1.8rem; width: 50px; height: 50px;
+      background: #F8F0FF; border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .sel-info .sel-name { font-weight: 800; font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px; }
+    .sel-info .sel-price { color: var(--primary); font-weight: 800; font-size: 0.88rem; }
+    .sel-info .sel-type { display: inline-block; background: linear-gradient(135deg,#FF6B9D,#A855F7); color:white; font-size:0.62rem; font-weight:800; padding:2px 7px; border-radius:8px; margin-left:5px; vertical-align:middle; }
+    .sel-clear { background: none; border: none; color: #bbb; cursor: pointer; font-size: 1.1rem; flex-shrink: 0; padding: 4px; }
+    .sel-clear:hover { color: #888; }
+
+    /* ===== Gift Responsive ===== */
+    @media (max-width: 767px) {
+      /* Page tabs */
+      .page-tab-bar { top: 58px; }
+      .page-tab { font-size: 0.82rem; padding: 12px 14px; }
+
+      /* Emotion tab */
+      .emotion-hero { padding: 36px 16px 28px; }
+      .emotion-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+        padding: 20px 14px;
+      }
+      .emotion-card { padding: 14px 6px 12px; border-radius: 16px; }
+      .ec-emoji { font-size: 1.8rem; margin-bottom: 5px; }
+      .ec-label { font-size: 0.72rem; }
+      .ec-sub { font-size: 0.6rem; }
+
+      /* Proposal area */
+      .proposal-area { padding: 0 14px 60px; }
+      .proposal-title-bar { padding: 20px 0 16px; gap: 8px; }
+
+      /* Single gift proposal row — horizontal scroll */
+      .single-gifts-row {
+        display: flex; gap: 10px;
+        overflow-x: auto; padding-bottom: 8px;
+        scrollbar-width: none;
+      }
+      .single-gifts-row::-webkit-scrollbar { display: none; }
+      .proposal-gift-card { flex-shrink: 0; width: 120px; }
+
+      /* Set card grid — 1 column */
+      .set-gifts-grid { grid-template-columns: 1fr; }
+      .set-card { margin-bottom: 12px; }
+      /* set items row stays 3 col but smaller */
+      .set-items-row { grid-template-columns: repeat(3,1fr); }
+      .si-emoji { font-size: 1.5rem; }
+      .si-name { font-size: 0.68rem; }
+
+      /* All gifts tab */
+      .all-gifts-section { padding: 20px 14px 100px; }
+      .gifts-grid { grid-template-columns: repeat(2,1fr); gap: 10px; }
+      .gift-card-single { padding: 14px 10px; }
+      /* 商品画像: モバイル高さ調整 */
+      .gift-card-img-wrap { height: 110px; }
+      .pgc-img-wrap { height: 85px; }
+
+      /* All sets grid */
+      .set-grid-all { grid-template-columns: 1fr; }
+
+      /* Filter rows — horizontal scroll */
+      .filter-row, .price-row { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+      .filter-row::-webkit-scrollbar, .price-row::-webkit-scrollbar { display: none; }
+      .filter-chip, .price-chip { flex-shrink: 0; font-size: 0.75rem; padding: 6px 12px; }
+
+      /* Selection banner */
+      .sel-banner { padding: 10px 14px 14px; }
+      .sel-banner-inner { gap: 8px; }
+      .sel-emojibox { width: 40px; height: 40px; font-size: 1.4rem; }
+      .sel-info .sel-name { font-size: 0.82rem; max-width: 130px; }
+      .btn.btn-primary { font-size: 0.82rem; padding: 9px 14px; }
+
+
+    }
+
+    @media (max-width: 400px) {
+      .emotion-grid { grid-template-columns: repeat(4, 1fr); gap: 6px; }
+      .ec-emoji { font-size: 1.5rem; }
+    }
+
+    /* =====================================================
+       CART BUTTON (floating)
+       ===================================================== */
+    .cart-fab {
+      position: fixed; bottom: 28px; right: 24px; z-index: 210;
+      background: linear-gradient(135deg, #FF6B9D, #A855F7);
+      color: white; border: none; cursor: pointer;
+      width: 60px; height: 60px; border-radius: 50%;
+      font-size: 1.5rem;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 6px 24px rgba(255,107,157,0.5);
+      transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+      font-family: inherit;
+    }
+    .cart-fab:hover { transform: scale(1.12); box-shadow: 0 10px 36px rgba(255,107,157,0.65); }
+    .cart-fab.has-items { animation: cartPulse 2s ease-in-out infinite; }
+    @keyframes cartPulse {
+      0%,100%{ box-shadow: 0 6px 24px rgba(255,107,157,0.5); }
+      50%    { box-shadow: 0 10px 40px rgba(255,107,157,0.8); }
+    }
+    .cart-badge {
+      position: absolute; top: -4px; right: -4px;
+      width: 22px; height: 22px; border-radius: 50%;
+      background: #FF6B9D; color: white;
+      font-size: 0.72rem; font-weight: 900;
+      display: none; align-items: center; justify-content: center;
+      border: 2px solid white;
+    }
+    .cart-fab.has-items .cart-badge { display: flex; }
+
+    /* =====================================================
+       CART PANEL (slide-up drawer)
+       ===================================================== */
+    .cart-overlay {
+      display: none; position: fixed; inset: 0; z-index: 300;
+    }
+    .cart-overlay.open { display: block; }
+    .cart-backdrop {
+      position: absolute; inset: 0;
+      background: rgba(10,5,30,0.72);
+      backdrop-filter: blur(6px);
+    }
+    .cart-panel {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      background: white; border-radius: 28px 28px 0 0;
+      max-height: 88vh; overflow-y: auto;
+      padding: 0 0 32px;
+      transform: translateY(100%);
+      transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .cart-overlay.open .cart-panel { transform: translateY(0); }
+    .cart-panel-handle {
+      width: 40px; height: 4px; border-radius: 2px;
+      background: #e0e0e0; margin: 12px auto 0;
+    }
+    .cart-panel-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 24px 14px;
+      border-bottom: 1px solid #f0e8ff;
+      position: sticky; top: 0; background: white; z-index: 2;
+    }
+    .cart-panel-title {
+      font-size: 1.1rem; font-weight: 900; color: #1a1a2e;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .cart-count-badge {
+      background: linear-gradient(135deg,#FF6B9D,#A855F7);
+      color: white; font-size: 0.72rem; font-weight: 900;
+      padding: 2px 9px; border-radius: 50px;
+    }
+    .cart-close-btn {
+      background: #f5f5f5; border: none; cursor: pointer;
+      width: 32px; height: 32px; border-radius: 50%;
+      font-size: 1rem; color: #888;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s;
+    }
+    .cart-close-btn:hover { background: #eee; color: #333; }
+    .cart-items-list {
+      padding: 12px 20px 0;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    /* single cart item row */
+    .cart-item {
+      display: flex; align-items: center; gap: 12px;
+      background: linear-gradient(145deg,#FFF5F8,#F8F0FF);
+      border: 1.5px solid #ece4ff;
+      border-radius: 18px; padding: 12px 14px;
+      transition: all 0.2s;
+    }
+    .cart-item-emoji {
+      font-size: 1.8rem; width: 46px; height: 46px;
+      background: white; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .cart-item-info { flex: 1; min-width: 0; }
+    .cart-item-name {
+      font-size: 0.9rem; font-weight: 800; color: #1a1a2e;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .cart-item-price {
+      font-size: 0.82rem; font-weight: 700;
+      background: linear-gradient(135deg,#FF6B9D,#A855F7);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text; margin-top: 2px;
+    }
+    .cart-item-type {
+      display: inline-block; background: #A855F7; color: white;
+      font-size: 0.58rem; font-weight: 800; padding: 1px 6px;
+      border-radius: 6px; margin-left: 5px; vertical-align: middle;
+      -webkit-text-fill-color: white;
+    }
+    .cart-item-remove {
+      background: none; border: 1.5px solid #f0e0f0; cursor: pointer;
+      width: 30px; height: 30px; border-radius: 50%;
+      font-size: 0.9rem; color: #ccc; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s;
+    }
+    .cart-item-remove:hover { border-color: #FF6B9D; color: #FF6B9D; background: #FFF0F7; }
+    /* cart empty state */
+    .cart-empty {
+      text-align: center; padding: 40px 20px;
+      color: #bbb; font-size: 0.9rem;
+    }
+    .cart-empty .ce-icon { font-size: 2.4rem; margin-bottom: 8px; }
+    /* cart footer */
+    .cart-footer {
+      padding: 16px 20px 0;
+      border-top: 1px solid #f0e8ff;
+      margin-top: 14px;
+    }
+    /* cart mode toggle */
+    .cart-mode-wrap { margin-bottom: 14px; }
+    .cart-mode-label { font-size: 0.72rem; font-weight: 800; color: #aaa; margin-bottom: 7px; }
+    .cart-mode-btns { display: flex; gap: 8px; }
+    .cart-mode-btn {
+      flex: 1; display: flex; align-items: center; gap: 8px;
+      border: 1.5px solid #e0d4f7; border-radius: 12px;
+      padding: 9px 11px; background: white;
+      cursor: pointer; font-family: inherit; color: #555;
+      transition: all 0.2s; text-align: left;
+    }
+    .cart-mode-btn.active { border-color: #A855F7; background: #f5ecff; color: #A855F7; }
+    .cart-mode-btn:hover:not(.active) { border-color: #c4b5fd; }
+    .cmb-icon { font-size: 1.2rem; flex-shrink: 0; }
+    .cmb-label { font-size: 0.78rem; font-weight: 800; display: block; }
+    .cmb-desc  { font-size: 0.62rem; color: #aaa; display: block; margin-top: 1px; }
+    .cart-mode-btn.active .cmb-desc { color: #A855F7; opacity: 0.7; }
+    .cart-total-row {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 14px;
+    }
+    .cart-total-label { font-size: 0.88rem; color: #888; font-weight: 700; }
+    .cart-total-val {
+      font-size: 1.2rem; font-weight: 900;
+      background: linear-gradient(135deg,#FF6B9D,#A855F7);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+
+    /* =====================================================
+       CUSTOM SET BUILDER MODAL
+       ===================================================== */
+    .custom-set-overlay {
+      display: none; position: fixed; inset: 0; z-index: 400;
+      align-items: flex-end; justify-content: center;
+    }
+    .custom-set-overlay.open { display: flex; }
+    .custom-set-backdrop {
+      position: absolute; inset: 0;
+      background: rgba(10,5,30,0.75);
+      backdrop-filter: blur(8px);
+    }
+    .custom-set-modal {
+      position: relative; z-index: 2;
+      width: min(760px, 100vw);
+      max-height: 92vh; overflow-y: auto;
+      background: white; border-radius: 28px 28px 0 0;
+      padding: 0 0 32px;
+      transform: translateY(100%);
+      transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .custom-set-overlay.open .custom-set-modal { transform: translateY(0); }
+    .csm-handle {
+      width: 40px; height: 4px; border-radius: 2px;
+      background: #e0e0e0; margin: 12px auto 0;
+    }
+    .csm-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 24px 12px;
+      position: sticky; top: 0; background: white; z-index: 2;
+      border-bottom: 1px solid #f0e8ff;
+    }
+    .csm-title { font-size: 1.05rem; font-weight: 900; color: #1a1a2e; }
+    .csm-close {
+      background: #f5f5f5; border: none; cursor: pointer;
+      width: 32px; height: 32px; border-radius: 50%;
+      font-size: 1rem; color: #888;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s;
+    }
+    .csm-close:hover { background: #eee; color: #333; }
+    /* Selected slots */
+    .csm-slots {
+      display: grid; grid-template-columns: repeat(3,1fr); gap: 10px;
+      padding: 16px 20px 14px;
+      border-bottom: 1px solid #f0e8ff;
+    }
+    .csm-slot {
+      background: #f8f4ff; border: 2px dashed #d4b8f0;
+      border-radius: 18px; padding: 14px 8px;
+      text-align: center; min-height: 100px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 5px; transition: all 0.25s; cursor: default;
+      position: relative;
+    }
+    .csm-slot.filled {
+      background: linear-gradient(145deg,#FFF5F8,#F8F0FF);
+      border-style: solid; border-color: #A855F7;
+    }
+    .csm-slot-num {
+      font-size: 0.62rem; font-weight: 800; color: #ccc;
+      text-transform: uppercase; letter-spacing: 0.1em;
+    }
+    .csm-slot.filled .csm-slot-num { color: #A855F7; }
+    .csm-slot-emoji { font-size: 2rem; }
+    .csm-slot-name { font-size: 0.72rem; font-weight: 800; color: #333; line-height: 1.3; }
+    .csm-slot-price {
+      font-size: 0.68rem; font-weight: 700;
+      background: linear-gradient(135deg,#FF6B9D,#A855F7);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .csm-slot-remove {
+      position: absolute; top: 6px; right: 6px;
+      background: #FFE8F0; border: none; cursor: pointer;
+      width: 22px; height: 22px; border-radius: 50%;
+      font-size: 0.7rem; color: #FF6B9D;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s;
+    }
+    .csm-slot-remove:hover { background: #FF6B9D; color: white; }
+    .csm-slot-placeholder { font-size: 0.78rem; color: #ccc; }
+    /* Progress bar */
+    .csm-progress {
+      padding: 0 20px 14px;
+      border-bottom: 1px solid #f0e8ff;
+    }
+    .csm-progress-bar {
+      height: 4px; background: #f0e8ff; border-radius: 2px; overflow: hidden;
+    }
+    .csm-progress-fill {
+      height: 100%;
+      background: linear-gradient(135deg,#FF6B9D,#A855F7);
+      border-radius: 2px;
+      transition: width 0.4s ease;
+    }
+    .csm-progress-label {
+      font-size: 0.72rem; color: #aaa; margin-top: 6px;
+      display: flex; justify-content: space-between;
+    }
+    .csm-progress-label strong { color: #A855F7; }
+    /* Gift picker inside modal */
+    .csm-picker-head {
+      padding: 14px 20px 10px;
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    }
+    .csm-picker-head h4 { font-size: 0.88rem; font-weight: 800; color: #333; flex: 1; }
+    .csm-search {
+      position: relative; width: 100%; max-width: 340px;
+      margin: 0 20px 10px;
+    }
+    .csm-search input {
+      width: 100%; padding: 9px 14px 9px 36px;
+      border: 2px solid #eee; border-radius: 50px;
+      font-size: 0.85rem; outline: none;
+      transition: border-color 0.2s; font-family: inherit;
+      box-sizing: border-box;
+    }
+    .csm-search input:focus { border-color: #A855F7; }
+    .csm-search .csm-search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #bbb; font-size: 0.8rem; }
+    .csm-cat-row {
+      display: flex; gap: 6px; overflow-x: auto; padding: 0 20px 10px;
+      scrollbar-width: none;
+    }
+    .csm-cat-row::-webkit-scrollbar { display: none; }
+    .csm-cat-chip {
+      flex-shrink: 0; padding: 5px 14px; border-radius: 50px;
+      font-size: 0.78rem; font-weight: 700; cursor: pointer;
+      border: 2px solid #e8e8e8; background: white; color: #888;
+      transition: all 0.2s; font-family: inherit;
+    }
+    .csm-cat-chip.active { background: #A855F7; color: white; border-color: transparent; }
+    /* gift picker grid */
+    .csm-gift-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(120px,1fr));
+      gap: 10px; padding: 0 20px 8px;
+    }
+    .csm-gift-item {
+      background: linear-gradient(145deg,#FFF5F8,#F8F0FF);
+      border: 2px solid #ece4ff; border-radius: 16px;
+      padding: 12px 8px; text-align: center; cursor: pointer;
+      transition: all 0.22s; position: relative;
+    }
+    .csm-gift-item:hover {
+      border-color: #A855F7; transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(168,85,247,0.2);
+    }
+    .csm-gift-item.in-slot {
+      border-color: #A855F7; background: linear-gradient(145deg,#F0E8FF,#FFE8F5);
+      opacity: 0.55; pointer-events: none;
+    }
+    .csm-gift-item.slot-full {
+      opacity: 0.35; pointer-events: none;
+    }
+    .csmi-emoji { font-size: 1.7rem; display: block; margin-bottom: 5px; }
+    .csmi-name { font-size: 0.72rem; font-weight: 800; color: #333; line-height: 1.3; }
+    .csmi-price { font-size: 0.68rem; color: #A855F7; font-weight: 700; margin-top: 2px; }
+    .csm-add-mark {
+      position: absolute; top: 5px; right: 5px;
+      width: 18px; height: 18px; border-radius: 50%;
+      background: #A855F7; color: white; font-size: 0.55rem; font-weight: 900;
+      display: none; align-items: center; justify-content: center;
+    }
+    .csm-gift-item.in-slot .csm-add-mark { display: flex; }
+    /* confirm button */
+    .csm-footer {
+      padding: 14px 20px 0; display: flex; flex-direction: column; gap: 10px;
+    }
+    .csm-name-input {
+      width: 100%; padding: 10px 16px;
+      border: 2px solid #ece4ff; border-radius: 12px;
+      font-size: 0.88rem; font-family: inherit; outline: none;
+      transition: border-color 0.2s; box-sizing: border-box;
+    }
+    .csm-name-input:focus { border-color: #A855F7; }
+    .csm-confirm-btn {
+      width: 100%; padding: 15px;
+      background: linear-gradient(135deg,#FF6B9D,#A855F7);
+      color: white; border: none; border-radius: 50px;
+      font-size: 0.95rem; font-weight: 800; cursor: pointer;
+      font-family: inherit; transition: all 0.25s;
+      box-shadow: 0 6px 20px rgba(255,107,157,0.4);
+    }
+    .csm-confirm-btn:disabled { opacity: 0.4; pointer-events: none; }
+    .csm-confirm-btn:not(:disabled):hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(255,107,157,0.55); }
+
+    /* "カスタムセットを作る" trigger button in set area */
+    .custom-set-trigger {
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      width: 100%;
+      background: linear-gradient(145deg,#f8f4ff,#fff5fb);
+      border: 2px dashed #c4a4f0;
+      border-radius: 22px; padding: 22px;
+      cursor: pointer; font-family: inherit;
+      transition: all 0.25s; color: #A855F7; font-weight: 800; font-size: 0.92rem;
+    }
+    .custom-set-trigger:hover {
+      border-color: #A855F7; background: linear-gradient(145deg,#f0e8ff,#ffe8f5);
+      transform: translateY(-3px); box-shadow: 0 8px 24px rgba(168,85,247,0.2);
+    }
+    .cst-icon { font-size: 1.6rem; }
+
+    /* 送料無料バッジ */
+    .gift-free-badge {
+      display: inline-block;
+      background: #e53e3e;
+      color: white;
+      font-size: 0.65rem; font-weight: 800;
+      padding: 2px 7px; border-radius: 4px;
+      letter-spacing: 0.04em;
+      margin-bottom: 6px;
+    }
+    /* ブランド名 */
+    .gift-brand {
+      font-size: 0.68rem; font-weight: 700;
+      color: #A855F7;
+      letter-spacing: 0.05em;
+      margin-bottom: 2px;
+    }
+
+    /* ── イラストスタイル共通 ── */
+    .gift-illust {
+      width: 100%; height: 140px;
+      border-radius: 14px 14px 0 0;
+      display: flex; align-items: center; justify-content: center;
+      position: relative; flex-shrink: 0;
+    }
+    .gift-illust .illust-emoji { font-size: 3.8rem; filter: drop-shadow(0 2px 10px rgba(0,0,0,0.12)); line-height: 1; }
+    .pgc-illust {
+      width: 100%; height: 90px;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 8px; position: relative; flex-shrink: 0;
+    }
+    .pgc-illust .illust-emoji { font-size: 2.8rem; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.12)); line-height: 1; }
+    .illust-badge {
+      position: absolute; top: 6px; right: 6px;
+      background: #e53e3e; color: white;
+      font-size: 0.58rem; font-weight: 800;
+      padding: 2px 6px; border-radius: 4px;
+    }
+
+    /* ── 商品カード画像エリア（全ギフトタブ）── */
+    .gift-card-img-wrap {
+      position: relative;
+      margin: -14px -12px 10px;   /* gift-card padding(14px/12px)分を打ち消して端まで伸ばす */
+      border-radius: 14px 14px 0 0;
+      overflow: hidden;
+      height: 140px;
+    }
+    .gift-card-img {
+      width: 100%; height: 100%;
+      /* background-* はインラインstyleで getImgBgStyle() から設定 */
+    }
+    .gift-card-img-badge {
+      position: absolute;
+      top: 8px; left: 8px;
+      background: #e53e3e;
+      color: white;
+      font-size: 0.62rem; font-weight: 800;
+      padding: 2px 7px; border-radius: 4px;
+      letter-spacing: 0.04em;
+      z-index: 1;
+    }
+
+    /* ── 感情タブ提案カード画像エリア（proposal）── */
+    .pgc-img-wrap {
+      position: relative;
+      margin: -18px -14px 10px;   /* proposal-gift-card padding(18px/14px)分を打ち消す */
+      border-radius: 14px 14px 0 0;
+      overflow: hidden;
+      height: 110px;
+    }
+    .pgc-img-wrap .pgc-img {
+      width: 100%; height: 100%;
+      /* background-* はインラインstyleで getImgBgStyle() から設定 */
+    }
+    .pgc-img-badge {
+      position: absolute;
+      top: 6px; left: 6px;
+      background: #e53e3e;
+      color: white;
+      font-size: 0.58rem; font-weight: 800;
+      padding: 1px 5px; border-radius: 3px;
+      letter-spacing: 0.04em;
+      z-index: 1;
+    }
+
+    /* ── All Gifts タブ カードスタイル ── */
+    .gift-card {
+      position: relative;
+      background: linear-gradient(145deg, #FFF5F8, #F8F0FF);
+      border: 2px solid transparent;
+      border-radius: 16px;
+      padding: 14px 12px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.25s;
+      overflow: hidden;
+    }
+    .gift-card:hover {
+      border-color: var(--primary);
+      transform: translateY(-4px);
+      box-shadow: 0 12px 32px rgba(255,107,157,0.18);
+    }
+    .gift-card.selected {
+      border-color: var(--primary);
+      background: linear-gradient(145deg, #FFF0F7, #F0E8FF);
+      box-shadow: 0 8px 28px rgba(255,107,157,0.25);
+    }
+    .gift-emoji { font-size: 2rem; margin-bottom: 6px; display: block; }
+    .gift-name  { font-size: 0.82rem; font-weight: 800; color: #333; margin-bottom: 4px; line-height: 1.35; }
+    .gift-price { color: var(--primary); font-weight: 800; font-size: 0.85rem; margin-bottom: 3px; }
+    .gift-desc  { font-size: 0.68rem; color: #aaa; line-height: 1.4; }
+
+    /* add-to-cart button on gift cards */
+    .add-to-cart-btn {
+      display: none;
+      position: absolute; bottom: 8px; right: 8px;
+      width: 28px; height: 28px; border-radius: 50%;
+      background: linear-gradient(135deg,#FF6B9D,#A855F7);
+      color: white; border: none; cursor: pointer; font-size: 0.85rem;
+      align-items: center; justify-content: center;
+      box-shadow: 0 3px 10px rgba(255,107,157,0.4);
+      transition: all 0.2s;
+    }
+    .gift-card:hover .add-to-cart-btn { display: flex; }
+    .add-to-cart-btn:hover { transform: scale(1.15); }
+
+    /* cart item in set gift cards */
+    .set-card-footer .cart-add-set-btn {
+      background: white; color: #A855F7;
+      border: 2px solid #d4b8f0; border-radius: 50px;
+      padding: 7px 14px; font-size: 0.78rem; font-weight: 800;
+      cursor: pointer; font-family: inherit; transition: all 0.2s;
+      display: inline-flex; align-items: center; gap: 5px;
+    }
+    .set-card-footer .cart-add-set-btn:hover {
+      background: #A855F7; color: white; border-color: transparent;
+    }
+
+    /* =====================================================
+       RESPONSIVE — cart / custom-set
+       ===================================================== */
+    @media (max-width: 767px) {
+      .cart-panel { border-radius: 22px 22px 0 0; }
+      .cart-items-list { padding: 10px 14px 0; }
+      .cart-footer { padding: 12px 14px 0; }
+      .cart-panel-head { padding: 14px 16px 12px; }
+      .csm-slots { grid-template-columns: repeat(3,1fr); gap: 7px; padding: 12px 14px 10px; }
+      .csm-gift-grid { grid-template-columns: repeat(3,1fr); gap: 7px; padding: 0 14px 6px; }
+      .csm-search { margin: 0 14px 8px; }
+      .csm-cat-row { padding: 0 14px 8px; }
+      .csm-footer { padding: 10px 14px 0; }
+      .csm-picker-head { padding: 10px 14px 6px; }
+      .csm-head { padding: 14px 16px 10px; }
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="particles" id="particles"></div>
+
+<!-- Header -->
+<header class="site-header">
+  <div class="header-inner">
+    <a href="index.html" class="logo">
+      
+      <span class="logo-text">OKURIATO</span>
+    </a>
+    <nav class="header-nav">
+      <a href="community.html" class="btn btn-outline"><i class="fas fa-users"></i> みんなの投稿</a>
+      <a href="giftalk.html" class="btn btn-outline" style="border-color:#7166F0;color:#7166F0;display:inline-flex;align-items:center;gap:6px;">
+        <!-- Giftalk ナビ: ギフトボックス+ワードマーク 青紫 -->
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 72" height="1.05em" style="vertical-align:middle;" aria-label="Giftalk">
+          <g transform="translate(4,8)">
+            <rect x="4" y="30" width="52" height="28" rx="3.5" fill="none" stroke="#7166F0" stroke-width="4" stroke-linejoin="round"/>
+            <rect x="1" y="21" width="58" height="11" rx="3" fill="none" stroke="#7166F0" stroke-width="4" stroke-linejoin="round"/>
+            <line x1="30" y1="21" x2="30" y2="58" stroke="#7166F0" stroke-width="3.5" stroke-linecap="round"/>
+            <line x1="1" y1="26.5" x2="59" y2="26.5" stroke="#7166F0" stroke-width="3.5" stroke-linecap="round"/>
+            <path d="M30 21 C25 13 12 11 14 17.5 C15.5 22 26 21 30 21" fill="none" stroke="#7166F0" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M30 21 C35 13 48 11 46 17.5 C44.5 22 34 21 30 21" fill="none" stroke="#7166F0" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+          </g>
+          <text x="76" y="55" font-family="'Inter','DM Sans','Nunito','Helvetica Neue',Arial,sans-serif" font-size="46" font-weight="800" fill="#7166F0" letter-spacing="-0.8">Giftalk</text>
+        </svg>
+      </a>
+      <a href="reactions.html" class="btn btn-outline"><i class="fas fa-bell"></i> リアクション</a>
+    </nav>
+    <button class="nav-hamburger" id="navHamburger" onclick="toggleDrawer()" aria-label="メニュー">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+<div class="nav-drawer" id="navDrawer">
+  <div class="nav-drawer-backdrop" onclick="closeDrawer()"></div>
+  <div class="nav-drawer-panel">
+    <a href="community.html" class="nav-drawer-link"><i class="fas fa-users"></i> みんなの投稿</a>
+    <a href="giftalk.html" class="nav-drawer-link" style="color:#7166F0;display:flex;align-items:center;gap:8px;">
+      <!-- Giftalk ドロワーリンク: ギフトボックス+ワードマーク 青紫 -->
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 72" height="1.05em" style="vertical-align:middle;flex-shrink:0;" aria-label="Giftalk">
+        <g transform="translate(4,8)">
+          <rect x="4" y="30" width="52" height="28" rx="3.5" fill="none" stroke="#7166F0" stroke-width="4" stroke-linejoin="round"/>
+          <rect x="1" y="21" width="58" height="11" rx="3" fill="none" stroke="#7166F0" stroke-width="4" stroke-linejoin="round"/>
+          <line x1="30" y1="21" x2="30" y2="58" stroke="#7166F0" stroke-width="3.5" stroke-linecap="round"/>
+          <line x1="1" y1="26.5" x2="59" y2="26.5" stroke="#7166F0" stroke-width="3.5" stroke-linecap="round"/>
+          <path d="M30 21 C25 13 12 11 14 17.5 C15.5 22 26 21 30 21" fill="none" stroke="#7166F0" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M30 21 C35 13 48 11 46 17.5 C44.5 22 34 21 30 21" fill="none" stroke="#7166F0" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </g>
+        <text x="76" y="55" font-family="'Inter','DM Sans','Nunito','Helvetica Neue',Arial,sans-serif" font-size="46" font-weight="800" fill="#7166F0" letter-spacing="-0.8">Giftalk</text>
+      </svg>
+      AIチャット
+    </a>
+    <a href="reactions.html" class="nav-drawer-link"><i class="fas fa-bell"></i> リアクション</a>
+    <a href="index.html" class="nav-drawer-link"><i class="fas fa-home"></i> トップ</a>
+  </div>
+</div>
+
+<!-- Page Tab Bar -->
+<div class="page-tab-bar">
+  <div class="page-tab-inner">
+    <button class="page-tab active" onclick="switchPageTab('emotion',this)">💭 気持ちから選ぶ</button>
+    <button class="page-tab" onclick="switchPageTab('all',this)">🛍️ 全ギフトから選ぶ</button>
+  </div>
+</div>
+
+<!-- ====== TAB: EMOTION ====== -->
+<div class="tab-panel active" id="panel-emotion">
+
+  <div class="emotion-hero">
+    <h2>今の気持ちは何ですか？</h2>
+    <p>感情を選ぶと、ぴったりの単品ギフト＆3択セットを提案します</p>
+  </div>
+
+  <div class="emotion-grid" id="emotionGrid">
+    <!-- JS render -->
+  </div>
+
+  <!-- Proposal area (shown after selecting emotion) -->
+  <div class="proposal-area" id="proposalArea" style="display:none;">
+    <div class="proposal-inner">
+      <div class="proposal-title-bar">
+        <div class="emotion-badge" id="propEmotionBadge">💪 応援</div>
+        <div class="proposal-subtitle" id="propSubtitle">に合ったギフトを提案します</div>
+      </div>
+
+      <!-- Filter bar -->
+      <div class="ep-filter-bar">
+        <div class="ep-filter-row">
+          <span class="ep-filter-label">価格帯</span>
+          <div class="ep-chips" id="epPriceChips">
+            <button class="price-chip active" onclick="setEmotionPrice('all',this)">すべて</button>
+            <button class="price-chip" onclick="setEmotionPrice('2000',this)">〜¥2,000</button>
+            <button class="price-chip" onclick="setEmotionPrice('4000',this)">〜¥4,000</button>
+            <button class="price-chip" onclick="setEmotionPrice('6000',this)">〜¥6,000</button>
+            <button class="price-chip" onclick="setEmotionPrice('99999',this)">¥6,000以上</button>
+          </div>
+        </div>
+        <div class="ep-filter-row">
+          <span class="ep-filter-label">並び替え</span>
+          <div class="ep-chips" id="epSortChips">
+            <button class="sort-chip active" onclick="setEmotionSort('match',this)">おすすめ順</button>
+            <button class="sort-chip" onclick="setEmotionSort('asc',this)">価格低い順 ↑</button>
+            <button class="sort-chip" onclick="setEmotionSort('desc',this)">価格高い順 ↓</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Single gifts -->
+      <div class="proposal-block" id="singleBlock">
+        <div class="proposal-block-title">
+          <span>おすすめ単品ギフト</span>
+          <span class="pb-badge single">1つ選んで贈る</span>
+        </div>
+        <div class="single-gifts-row" id="singleGiftsRow"><!-- JS --></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ====== TAB: ALL GIFTS ====== -->
+<div class="tab-panel" id="panel-all">
+  <div class="all-gifts-section">
+    <div class="inner-tab-bar">
+      <button class="inner-tab active" onclick="switchInnerTab('single',this)">🎁 単品ギフト</button>
+      <button class="inner-tab" onclick="switchInnerTab('sets',this)">🎀 3択セットギフト</button>
+    </div>
+
+    <!-- INNER: Single -->
+    <div class="inner-panel active" id="inner-single">
+      <div class="search-wrap">
+        <i class="fas fa-search si"></i>
+        <input type="text" id="singleSearch" placeholder="ギフトを検索..." oninput="renderSingleGifts()">
+      </div>
+      <div class="filter-row" id="singleCatRow"><!-- JS --></div>
+      <div class="price-row" id="singlePriceRow"><!-- JS --></div>
+      <div class="sort-row">
+        <span class="sort-label">並び替え：</span>
+        <button class="sort-chip active" id="sortDefault" onclick="setSingleSort('default',this)">おすすめ順</button>
+        <button class="sort-chip" id="sortAsc"     onclick="setSingleSort('asc',this)">価格が低い順 ↑</button>
+        <button class="sort-chip" id="sortDesc"    onclick="setSingleSort('desc',this)">価格が高い順 ↓</button>
+      </div>
+      <div class="gifts-grid" id="singleGrid"><!-- JS --></div>
+      <div class="empty-state" id="singleEmpty" style="display:none;"><div class="es-icon">🔍</div><p>該当するギフトがありません</p></div>
+    </div>
+
+    <!-- INNER: Sets -->
+    <div class="inner-panel" id="inner-sets">
+      <div class="filter-row" id="setCatRow"><!-- JS --></div>
+      <div class="price-row" id="setPriceRow"><!-- JS --></div>
+      <div class="all-sets-grid" id="setsGrid"><!-- JS --></div>
+      <div class="empty-state" id="setsEmpty" style="display:none;"><div class="es-icon">🔍</div><p>該当するセットがありません</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== CART FAB ===== -->
+<button class="cart-fab" id="cartFab" onclick="openCart()" aria-label="カートを開く">
+  🛒
+  <span class="cart-badge" id="cartBadge">0</span>
+</button>
+
+<!-- ===== CART PANEL ===== -->
+<div class="cart-overlay" id="cartOverlay">
+  <div class="cart-backdrop" onclick="closeCart()"></div>
+  <div class="cart-panel" id="cartPanel">
+    <div class="cart-panel-handle"></div>
+    <div class="cart-panel-head">
+      <div class="cart-panel-title">
+        🛒 カート
+        <span class="cart-count-badge" id="cartCountBadge">0点</span>
+      </div>
+      <button class="cart-close-btn" onclick="closeCart()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="cart-items-list" id="cartItemsList">
+      <!-- JS render -->
+    </div>
+    <div class="cart-footer" id="cartFooter" style="display:none;">
+      <!-- モード選択（同価格商品が2点以上のときのみ表示） -->
+      <div class="cart-mode-wrap" id="cartModeWrap" style="display:none;">
+        <div class="cart-mode-label">ギフトの贈り方</div>
+        <div class="cart-mode-btns">
+          <button class="cart-mode-btn active" id="giftModeChoice" onclick="setGiftCartMode('choice')">
+            <span class="cmb-icon">🎯</span>
+            <span>
+              <span class="cmb-label">三択ギフト</span>
+              <span class="cmb-desc">受け取り手が1つ選ぶ</span>
+            </span>
+          </button>
+          <button class="cart-mode-btn" id="giftModeFull" onclick="setGiftCartMode('full')">
+            <span class="cmb-icon">🎁</span>
+            <span>
+              <span class="cmb-label">全部まとめて贈る</span>
+              <span class="cmb-desc">全商品が届く</span>
+            </span>
+          </button>
+        </div>
+      </div>
+      <div class="cart-total-row">
+        <span class="cart-total-label" id="cartTotalLabel">合計金額（目安）</span>
+        <span class="cart-total-val" id="cartTotalVal">¥0</span>
+      </div>
+      <button class="btn btn-primary" style="width:100%;padding:15px;font-size:1rem;" onclick="goToAvatar()">
+        🎁 このギフトを贈る <i class="fas fa-arrow-right"></i>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== CUSTOM SET BUILDER MODAL ===== -->
+<div class="custom-set-overlay" id="customSetOverlay">
+  <div class="custom-set-backdrop" onclick="closeCustomSet()"></div>
+  <div class="custom-set-modal" id="customSetModal">
+    <div class="csm-handle"></div>
+    <div class="csm-head">
+      <div class="csm-title">🎀 オリジナル3択セットを作る</div>
+      <button class="csm-close" onclick="closeCustomSet()"><i class="fas fa-times"></i></button>
+    </div>
+    <!-- Slot preview -->
+    <div class="csm-slots" id="csmSlots">
+      <div class="csm-slot" id="csmSlot0">
+        <div class="csm-slot-num">選択肢 1</div>
+        <div class="csm-slot-placeholder">タップして<br>追加</div>
+      </div>
+      <div class="csm-slot" id="csmSlot1">
+        <div class="csm-slot-num">選択肢 2</div>
+        <div class="csm-slot-placeholder">タップして<br>追加</div>
+      </div>
+      <div class="csm-slot" id="csmSlot2">
+        <div class="csm-slot-num">選択肢 3</div>
+        <div class="csm-slot-placeholder">タップして<br>追加</div>
+      </div>
+    </div>
+    <!-- Progress -->
+    <div class="csm-progress">
+      <div class="csm-progress-bar"><div class="csm-progress-fill" id="csmProgressFill" style="width:0%"></div></div>
+      <div class="csm-progress-label">
+        <span id="csmProgressText">ギフトを3つ選んでください</span>
+        <strong id="csmProgressCount">0 / 3</strong>
+      </div>
+    </div>
+    <!-- Gift picker -->
+    <div class="csm-picker-head">
+      <h4>📦 ギフトを選ぶ</h4>
+    </div>
+    <div class="csm-search">
+      <i class="fas fa-search csm-search-icon"></i>
+      <input type="text" id="csmSearchInput" placeholder="ギフトを検索..." oninput="renderCsmGifts()">
+    </div>
+    <div class="csm-cat-row" id="csmCatRow"><!-- JS --></div>
+    <div class="csm-gift-grid" id="csmGiftGrid"><!-- JS --></div>
+    <!-- Name + confirm -->
+    <div class="csm-footer">
+      <input type="text" class="csm-name-input" id="csmSetName" placeholder="セット名（例：感謝の気持ち3択セット）" maxlength="30">
+      <button class="csm-confirm-btn" id="csmConfirmBtn" disabled onclick="confirmCustomSet()">
+        🎀 このセットをカートに追加
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Giftalk floating -->
+<a href="giftalk.html" id="giftalkFloatBtn" style="position:fixed;bottom:100px;right:24px;z-index:190;background:linear-gradient(135deg,#A855F7,#7c3aed);color:white;padding:11px 16px;border-radius:50px;font-size:0.78rem;font-weight:800;box-shadow:0 8px 28px rgba(168,85,247,0.5);text-decoration:none;display:flex;align-items:center;gap:7px;animation:gt-pulse 2s ease-in-out infinite;">
+  <!-- Giftalk フローティングボタン: ギフトボックスアイコン+ワードマーク 白 -->
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="18" height="18" style="flex-shrink:0;" aria-hidden="true">
+    <rect x="7" y="27" width="34" height="18" rx="3" fill="none" stroke="white" stroke-width="3" stroke-linejoin="round"/>
+    <rect x="5" y="19" width="38" height="10" rx="2.5" fill="none" stroke="white" stroke-width="3" stroke-linejoin="round"/>
+    <line x1="24" y1="19" x2="24" y2="45" stroke="white" stroke-width="2.8" stroke-linecap="round"/>
+    <line x1="5" y1="24" x2="43" y2="24" stroke="white" stroke-width="2.8" stroke-linecap="round"/>
+    <path d="M24 19 C20 12 11 10 13 15.5 C14.5 19 22 19 24 19" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M24 19 C28 12 37 10 35 15.5 C33.5 19 26 19 24 19" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 58" height="1em" style="vertical-align:middle;flex-shrink:0;" aria-label="Giftalk">
+    <text x="2" y="48" font-family="'Inter','DM Sans','Nunito','Helvetica Neue',Arial,sans-serif" font-size="50" font-weight="800" fill="white" letter-spacing="-1">Giftalk</text>
+  </svg>
+  に相談する
+</a>
+<style>@keyframes gt-pulse{0%,100%{box-shadow:0 8px 28px rgba(168,85,247,0.5);}50%{box-shadow:0 8px 44px rgba(168,85,247,0.8);}}</style>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// DATA
+// ============================================================
+const GIFTS = [
+  // ── ~¥1,000 ──
+  { id:'p01', brand:'OTTAIPNU',       name:'OTTAIPNU / chocotowel ブラック',                    emoji:'🍫', price:550,  cat:'towel',        tags:['thanks','care','duty'],         desc:'チョコのような風合いのミニタオル',             freeShip:false, img:null, emotions:['thanks','care','duty','love'] },
+  { id:'p02', brand:'Norte Carta',    name:'Norte Carta / とろっとうまみ 椎茸バーニャカウダ',   emoji:'🍄', price:756,  cat:'food',         tags:['thanks','care','duty'],         desc:'椎茸の旨みたっぷりのバーニャカウダソース',     freeShip:false, img:null, emotions:['thanks','care','duty','self'] },
+  { id:'p03', brand:'moritaMiW',      name:'moritaMiW / ガーゼハンカチ 花とアリンコ',           emoji:'🌸', price:770,  cat:'handkerchief', tags:['love','thanks','care'],         desc:'かわいいイラストのガーゼハンカチ',             freeShip:false, img:null, emotions:['love','thanks','care'] },
+  { id:'p04', brand:'TAMANOHADA',     name:'TAMANOHADA / ソープ（ガーデニア）',                 emoji:'🌿', price:880,  cat:'beauty',       tags:['care','self','thanks'],         desc:'上質な香りの固形石けん',                      freeShip:false, img:null, emotions:['care','self','thanks','hidden'] },
+  { id:'p05', brand:'HAA for bath',   name:'HAA for bath / めぐる歌〈岡本真帆〉',               emoji:'🛁', price:880,  cat:'bath',         tags:['care','self','thanks'],         desc:'俳人の詩を纏った入浴剤',                      freeShip:false, img:null, emotions:['care','self','thanks','love'] },
+  { id:'p06', brand:'moritaMiW',      name:'moritaMiW / ガーゼパイルハンカチ（ネコ）',          emoji:'🐱', price:990,  cat:'handkerchief', tags:['love','thanks','care'],         desc:'もこもこのネコが愛らしいハンカチ',             freeShip:false, img:null, emotions:['love','thanks','care'] },
+  // ── ~¥1,500 ──
+  { id:'p07', brand:'アンファン',     name:'アンファン / スズランクッキー缶',                   emoji:'🌷', price:1080, cat:'sweets',       tags:['thanks','love','duty'],         desc:'スズランモチーフのかわいいクッキー缶',         freeShip:false, img:null, emotions:['thanks','love','duty','care'] },
+  { id:'p08', brand:'ウェッジウッド', name:'ウェッジウッド / シグニチャー ティーバッグ',        emoji:'🫖', price:1080, cat:'tea',          tags:['thanks','duty','care'],         desc:'英国老舗ブランドのティーバッグ',               freeShip:false, img:null, emotions:['thanks','duty','care'] },
+  { id:'p09', brand:'DEAN & DELUCA',  name:'DEAN & DELUCA / ハートジャムサンドクッキー 8pcs',   emoji:'🍪', price:1080, cat:'sweets',       tags:['love','thanks','hidden'],       desc:'ハート型のおしゃれなクッキー詰め合わせ',       freeShip:false, img:null, emotions:['love','thanks','hidden','care'] },
+  { id:'p10', brand:'日和制作所',     name:'日和制作所 / 和三盆 せとうち日和',                  emoji:'🌅', price:1296, cat:'wagashi',      tags:['thanks','duty','care'],         desc:'瀬戸内の柑橘を使った上品な和三盆糖',           freeShip:false, img:null, emotions:['thanks','duty','care'] },
+  { id:'p11', brand:'TRICOTE',        name:'TRICOTE / カットリボン柄ハンカチ',                  emoji:'🎀', price:1320, cat:'handkerchief', tags:['love','thanks','hidden'],       desc:'リボン柄がおしゃれなハンカチ',                 freeShip:false, img:null, emotions:['love','thanks','hidden'] },
+  { id:'p12', brand:'泉屋東京店',     name:'泉屋東京店 / スペシャルクッキーズ A-100',           emoji:'🍘', price:1404, cat:'sweets',       tags:['thanks','duty','care'],         desc:'老舗の定番クッキー詰め合わせ',                 freeShip:false, img:null, emotions:['thanks','duty','care'] },
+  { id:'p13', brand:'BARK&BRANCH',    name:'BARK&BRANCH / バンブーインセンス ホワイトセージ',   emoji:'🪷', price:1430, cat:'aroma',        tags:['care','self','hidden'],         desc:'竹軸のナチュラルなお香',                      freeShip:false, img:null, emotions:['care','self','hidden','love'] },
+  { id:'p14', brand:'Bloom365',       name:'Bloom365 / ガーベラ（ピンク）＋選べるギフト',       emoji:'💐', price:1491, cat:'flower',       tags:['love','thanks','hidden'],       desc:'生花＋カタログギフトのセット',                 freeShip:false, img:null, emotions:['love','thanks','hidden','care'] },
+  // ── ~¥2,000 ──
+  { id:'p15', brand:'Brew Tea Co.',   name:'Brew Tea Co. / ミックスボックス 10コセット',        emoji:'🍵', price:1620, cat:'tea',          tags:['thanks','care','duty'],         desc:'カラフルな10種のティーバッグ詰め合わせ',       freeShip:false, img:null, emotions:['thanks','care','duty'] },
+  { id:'p16', brand:'猿田彦珈琲',     name:'猿田彦珈琲 / ドリップバッグコーヒーギフト 6袋',    emoji:'☕', price:1620, cat:'coffee',       tags:['thanks','care','duty'],         desc:'東京の人気ロースターのドリップコーヒー',       freeShip:false, img:null, emotions:['thanks','care','duty','self'] },
+  { id:'p17', brand:'MammaBaby',      name:'MammaBaby / ハンドソープ',                          emoji:'🧼', price:1650, cat:'beauty',       tags:['thanks','care','duty'],         desc:'天然成分の赤ちゃんにも使えるハンドソープ',     freeShip:false, img:null, emotions:['thanks','care','duty','love'] },
+  { id:'p18', brand:'Rifle Paper',    name:'Rifle Paper / ガーデンパーティ ハンカチクロス',     emoji:'🌺', price:1705, cat:'handkerchief', tags:['love','thanks','hidden'],       desc:'ボタニカルイラストが美しいハンカチ',           freeShip:false, img:null, emotions:['love','thanks','hidden','care'] },
+  { id:'p19', brand:'100(HYAKU)',     name:'100(HYAKU) / 今治ウォッシュタオル（グレー）',       emoji:'🏳️', price:1760, cat:'towel',        tags:['thanks','care','duty'],         desc:'今治産の上質なウォッシュタオル',               freeShip:false, img:null, emotions:['thanks','care','duty'] },
+  { id:'p20', brand:'CONVENI BAG',    name:'CONVENI BAG / ブルー×ホワイト',                     emoji:'👜', price:1980, cat:'bag',          tags:['thanks','care','duty'],         desc:'スタイリッシュなデザインのエコバッグ',         freeShip:false, img:null, emotions:['thanks','care','duty','self'] },
+  { id:'p21', brand:'ReFa',           name:'ReFa / ミルクプロテイン シャンプー',                emoji:'💆', price:1980, cat:'beauty',       tags:['care','self','thanks'],         desc:'ミルクプロテイン配合のプレミアムシャンプー',   freeShip:false, img:null, emotions:['care','self','thanks','hidden'] },
+  { id:'p22', brand:'ARAS',           name:'ARAS / お茶碗',                                     emoji:'🍚', price:1980, cat:'tableware',    tags:['thanks','love','duty'],         desc:'耐熱性の高いスタイリッシュな食器',             freeShip:false, img:null, emotions:['thanks','love','duty'] },
+  // ── ~¥2,500 ──
+  { id:'p23', brand:'彩果の宝石',     name:'彩果の宝石 / フルーツゼリーコレクション 15種44個', emoji:'🍇', price:2160, cat:'sweets',       tags:['thanks','duty','care'],         desc:'15種のフルーツをリアルに再現したゼリー',       freeShip:false, img:null, emotions:['thanks','duty','care'] },
+  { id:'p24', brand:'資生堂パーラー', name:'資生堂パーラー / チーズケーキ 6個入',              emoji:'🍰', price:2160, cat:'sweets',       tags:['thanks','duty','care'],         desc:'老舗資生堂パーラーの定番チーズケーキ',         freeShip:false, img:null, emotions:['thanks','duty','care'] },
+  { id:'p25', brand:'スターバックス', name:'スターバックス / オリガミドリップコーヒーギフト 3箱',emoji:'☕',price:2160, cat:'coffee',      tags:['thanks','duty','care'],         desc:'スタバのドリップコーヒーギフトセット',         freeShip:false, img:null, emotions:['thanks','duty','care','self'] },
+  { id:'p26', brand:'amabro',         name:'amabro / MINI VASE TWO TONE（Pink×Blue）',          emoji:'🏺', price:2200, cat:'interior',     tags:['love','thanks','hidden'],       desc:'ツートーンカラーのおしゃれな小花瓶',           freeShip:false, img:null, emotions:['love','thanks','hidden','self'] },
+  { id:'p27', brand:'SENNOK',         name:'SENNOK / ハンドクリームAB',                         emoji:'🤲', price:2200, cat:'beauty',       tags:['care','self','thanks'],         desc:'韓国発・米ぬか水配合のハンドクリーム',         freeShip:false, img:null, emotions:['care','self','thanks','hidden'] },
+  { id:'p28', brand:'H TOKYO',        name:'H TOKYO / swimmie ハンカチ チューリップ',           emoji:'🌷', price:2200, cat:'handkerchief', tags:['love','thanks','hidden'],       desc:'チューリップ柄のアート系ハンカチ',             freeShip:false, img:null, emotions:['love','thanks','hidden','care'] },
+  { id:'p29', brand:'アンファン',     name:'アンファン / エンジェルローズ缶',                   emoji:'🌹', price:1080, cat:'sweets',       tags:['love','thanks','hidden'],       desc:'バラ型クッキーが入ったかわいいギフト缶',       freeShip:false, img:null, emotions:['love','thanks','hidden','care'] },
+  { id:'p30', brand:'ウェッジウッド', name:'ウェッジウッド / ワイルドストロベリー ティーバッグ',emoji:'🍓', price:1080, cat:'tea',          tags:['thanks','duty','care'],         desc:'人気フレーバーのティーバッグギフト',           freeShip:false, img:null, emotions:['thanks','duty','care'] },
+  { id:'p31', brand:'アンリ・シャルパンティエ', name:'アンリ・シャルパンティエ / プティ・ガトー 12個入', emoji:'🧁', price:1080, cat:'sweets', tags:['thanks','duty','care'],   desc:'フランス菓子の老舗による焼き菓子詰め合わせ',   freeShip:false, img:null, emotions:['thanks','duty','care','love'] },
+  { id:'p32', brand:'スターバックス', name:'スターバックス / プレミアム（5袋）',               emoji:'☕', price:1080, cat:'coffee',       tags:['thanks','care','duty'],         desc:'スタバの人気コーヒー5袋ギフト',               freeShip:false, img:null, emotions:['thanks','care','duty','self'] },
+  { id:'p33', brand:'紀州高田果園',   name:'紀州高田果園 / 紀州南高梅「はちみつ入り梅」200g',  emoji:'🌸', price:1080, cat:'food',         tags:['thanks','duty','care'],         desc:'紀州産南高梅のはちみつ漬け',                  freeShip:false, img:null, emotions:['thanks','duty','care'] },
+  { id:'p34', brand:'クラウスポルト', name:'クラウスポルト / FAVORITO ミニソープ 50g',         emoji:'🌺', price:1980, cat:'beauty',       tags:['care','self','thanks'],         desc:'RED POPPYの香りのポルトガル製ミニソープ',     freeShip:false, img:null, emotions:['care','self','thanks','hidden'] },
+  { id:'p35', brand:'YOUTH / ミコノス', name:'YOUTH / ミコノス / アカンサスハンカチ',          emoji:'🌿', price:1980, cat:'handkerchief', tags:['love','thanks','hidden'],       desc:'アカンサス柄のエレガントなハンカチ',           freeShip:false, img:null, emotions:['love','thanks','hidden'] },
+  { id:'p36', brand:'DEAN & DELUCA',  name:'DEAN & DELUCA / CHAMBORD ティーグラス 350ml',      emoji:'🥂', price:1980, cat:'kitchen',      tags:['love','thanks','hidden'],       desc:'おしゃれなボルドー型ティーグラス',             freeShip:false, img:null, emotions:['love','thanks','hidden','self'] },
+  { id:'p37', brand:'MammaBaby',      name:'MammaBaby / ベビーシャンプー',                      emoji:'🧴', price:1980, cat:'baby',         tags:['love','care','thanks'],         desc:'赤ちゃんにも使える低刺激シャンプー',           freeShip:false, img:null, emotions:['love','care','thanks'] },
+  { id:'p38', brand:'ARAS',           name:'ARAS / 汁椀',                                       emoji:'🍜', price:1980, cat:'tableware',    tags:['thanks','love','duty'],         desc:'耐熱性の高いスタイリッシュな汁椀',             freeShip:false, img:null, emotions:['thanks','love','duty'] },
+  { id:'p39', brand:'塩瀬総本家',     name:'塩瀬総本家 / 姫羊羹（6本入）',                     emoji:'🍡', price:2160, cat:'wagashi',      tags:['thanks','duty','care'],         desc:'650年の歴史を持つ老舗の上品な姫羊羹',         freeShip:false, img:null, emotions:['thanks','duty','care'] },
+  { id:'p40', brand:'ミル・ガトー',   name:'ミル・ガトー / スイーツセレクト 4種18枚入り',      emoji:'🍮', price:2160, cat:'sweets',       tags:['thanks','duty','care'],         desc:'4種の焼き菓子詰め合わせ',                     freeShip:false, img:null, emotions:['thanks','duty','care'] },
+  { id:'p41', brand:'稲庭うどん',     name:'稲庭うどん（80g×7）',                               emoji:'🍜', price:2160, cat:'food',         tags:['thanks','duty','care'],         desc:'秋田産の高級稲庭うどん7束セット',             freeShip:false, img:null, emotions:['thanks','duty','care'] },
+  { id:'p42', brand:'泉屋東京店',     name:'泉屋東京店 / スペシャルクッキーズ A-160',           emoji:'🍪', price:2160, cat:'sweets',       tags:['thanks','duty','care'],         desc:'老舗泉屋の定番クッキー大缶',                  freeShip:false, img:null, emotions:['thanks','duty','care'] },
+  { id:'p43', brand:'恋するいちご',   name:'恋するいちごプレミアム 10個入り',                   emoji:'🍓', price:2160, cat:'sweets',       tags:['love','thanks','hidden'],       desc:'高品質いちごを使ったプレミアムスイーツ',       freeShip:false, img:null, emotions:['love','thanks','hidden','care'] },
+  { id:'p44', brand:'CUOL',           name:'CUOL / タオルではじめるスキンケア ウォッシュタオル',emoji:'🧖', price:2200, cat:'towel',        tags:['care','self','thanks'],         desc:'スキンケアに特化した今治製ウォッシュタオル',   freeShip:false, img:null, emotions:['care','self','thanks'] },
+  { id:'p45', brand:'KIHARA',         name:'KIHARA / KOMON 箸置き 5枚セット',                  emoji:'🥢', price:2200, cat:'tableware',    tags:['thanks','love','duty'],         desc:'伝統文様を現代的にアレンジした箸置きセット',   freeShip:false, img:null, emotions:['thanks','love','duty'] },
+  { id:'p46', brand:'SLEEP STEP',     name:'SLEEP STEP / アロマティックボディオイル スイートドリーム',emoji:'🌙', price:2200, cat:'aroma', tags:['care','self','hidden'],      desc:'眠りを誘うアロマのボディオイル',               freeShip:false, img:null, emotions:['care','self','hidden','love'] },
+  { id:'p47', brand:'bodum',          name:'bodum / ドューロ トックリカラフェ',                 emoji:'🫙', price:2200, cat:'kitchen',      tags:['love','thanks','self'],         desc:'北欧デザインのおしゃれなガラスカラフェ',       freeShip:false, img:null, emotions:['love','thanks','self','hidden'] },
+  { id:'p48', brand:'VITAL MATERIAL', name:'VITAL MATERIAL / トゥースペースト ハーブミント',   emoji:'🪥', price:2200, cat:'beauty',       tags:['care','self','thanks'],         desc:'天然成分配合のプレミアム歯磨き粉',             freeShip:false, img:null, emotions:['care','self','thanks'] },
+];
+
+// ============================================================
+// 画像クロップ CSS ヘルパー
+// 各スクリーンショットから商品写真エリアだけを正確に切り出す
+// ============================================================
+// 画像メタデータ（ピクセルスキャン実測値）
+const IMG_META = {
+  // row1: 1024×440px — 3列均等、写真エリアY=13〜289、列間ガター: 341-396 / 673-728
+  1: { w:1024, h:440, photoTop:13, photoBottom:289,
+       cols:[ {x1:0, x2:340}, {x1:397, x2:672}, {x1:729, x2:1023} ] },
+  // row2: 1024×470px — 3列均等、写真エリアY=21〜311
+  2: { w:1024, h:470, photoTop:21, photoBottom:311,
+       cols:[ {x1:0, x2:340}, {x1:342, x2:682}, {x1:684, x2:1023} ] },
+  // row3: 1024×457px — 3列均等、写真エリアY=17〜307、列間ガター: 317-396 / 658-714
+  3: { w:1024, h:457, photoTop:17, photoBottom:307,
+       cols:[ {x1:0, x2:316}, {x1:397, x2:657}, {x1:715, x2:1023} ] },
+  // row4: 1024×483px — 3列均等、写真エリアY=88〜307（上部にブランド帯あり）
+  4: { w:1024, h:483, photoTop:88, photoBottom:307,
+       cols:[ {x1:0, x2:340}, {x1:342, x2:682}, {x1:684, x2:1023} ] },
+};
+
+function getIllustGradient(g) {
+  const cat = g.category || g.cat || '';
+  const map = {
+    food:         ['#FDA085','#F6D365'],
+    sweets:       ['#FDA085','#F6D365'],
+    drink:        ['#43e97b','#38f9d7'],
+    tea:          ['#96fbc4','#f9f586'],
+    coffee:       ['#c79081','#dfa579'],
+    beauty:       ['#e0c3fc','#8ec5fc'],
+    bath:         ['#a1c4fd','#c2e9fb'],
+    aroma:        ['#cfd9df','#a8edea'],
+    towel:        ['#84fab0','#8fd3f4'],
+    handkerchief: ['#fbc2eb','#a6c1ee'],
+    tableware:    ['#a8edea','#fed6e3'],
+    kitchen:      ['#a8edea','#fed6e3'],
+    interior:     ['#4facfe','#00f2fe'],
+    flower:       ['#f7971e','#ffd200'],
+    baby:         ['#fddb92','#d1fdff'],
+    bag:          ['#667eea','#764ba2'],
+    wagashi:      ['#f8b500','#ee9ca7'],
+    relax:        ['#89f7fe','#66a6ff'],
+  };
+  const p = map[cat] || ['#e0c3fc','#c2e9fb'];
+  return `linear-gradient(135deg,${p[0]},${p[1]})`;
+}
+
+/**
+ * 商品写真エリアのみをカード画像要素に表示するためのインラインstyle文字列を返す
+ */
+function getImgBgStyle(g, cardH) {
+  if (!g.img || !g.imgRow || !g.imgCol) return '';
+  const meta = IMG_META[g.imgRow];
+  if (!meta) return '';
+  const col = meta.cols[g.imgCol - 1];
+  if (!col) return '';
+
+  // 商品写真の実寸（ピクセル）
+  const photoW = col.x2 - col.x1;          // 列幅（商品写真の横幅）
+  const photoH = meta.photoBottom - meta.photoTop; // 写真の縦幅
+
+  // カード表示高さに合わせたスケール（縦基準でフィット）
+  const scale = cardH / photoH;
+
+  // 画像全体をスケール後のサイズ
+  const bgW = Math.round(meta.w * scale);
+  const bgH = Math.round(meta.h * scale);
+
+  // 商品写真左上端のスケール後座標
+  const cropX = Math.round(col.x1 * scale);
+  const cropY = Math.round(meta.photoTop * scale);
+
+  return `background-image:url('${g.img}');background-size:${bgW}px ${bgH}px;background-position:-${cropX}px -${cropY}px;background-repeat:no-repeat;`;
+}
+
+const EMOTIONS = [
+  { id:'cheer',  label:'応援',     emoji:'💪', sub:'Cheer' },
+  { id:'thanks', label:'感謝',     emoji:'🙏', sub:'Thanks' },
+  { id:'care',   label:'労い',     emoji:'🫶', sub:'Care' },
+  { id:'hidden', label:'下心',     emoji:'😏', sub:'Hidden' },
+  { id:'secret', label:'裏心',     emoji:'🤫', sub:'Secret' },
+  { id:'duty',   label:'義務感',   emoji:'😅', sub:'Duty' },
+  { id:'self',   label:'自己満足', emoji:'😄', sub:'For Me' },
+];
+
+// All defined sets (curated sets for "all sets" tab)
+const ALL_GIFT_SETS = [
+  {
+    id:'set_care_l', label:'毎日のケアセット', price:1650, headerClass:'',
+    items:[
+      { id:'g1',  name:'MammaBaby / ハンドソープ',         emoji:'🧼', desc:'天然成分ハンドソープ',           price:1650 },
+      { id:'g7',  name:'Brew Tea Co. / ティーバッグ10コ', emoji:'🍵', desc:'10種ミックスティー',             price:1620 },
+      { id:'g12', name:'アンファン / スズランクッキー缶',  emoji:'🍪', desc:'スズランモチーフのクッキー缶',   price:1080 },
+    ],
+    cat:'relax', tags:['care','thanks'], priceRange:[0,2500],
+  },
+  {
+    id:'set_food_m', label:'美食家のおうちごはんセット', price:5200, headerClass:'alt-header',
+    items:[
+      { id:'g5',  name:'NISHIKIYA / カレー＆スープ10個', emoji:'🍛', desc:'10種アソートギフト',              price:5200 },
+      { id:'g7',  name:'Brew Tea Co. / ティーバッグ10コ',emoji:'🍵', desc:'10種ミックスティー',             price:1620 },
+      { id:'g12', name:'アンファン / スズランクッキー缶', emoji:'🍪', desc:'スズランモチーフのクッキー缶',   price:1080 },
+    ],
+    cat:'food', tags:['thanks','duty','care'], priceRange:[1000,6000],
+  },
+  {
+    id:'set_meat_gourmet', label:'贅沢グルメ肉ギフトセット', price:5699, headerClass:'',
+    items:[
+      { id:'g2',  name:'Nick / ローストビーフ＆ポークセット', emoji:'🥩', desc:'神戸ミートショップ肉ギフト', price:5699 },
+      { id:'g5',  name:'NISHIKIYA / カレー＆スープ10個',      emoji:'🍛', desc:'10種アソートギフト',         price:5200 },
+      { id:'g7',  name:'Brew Tea Co. / ティーバッグ10コ',     emoji:'🍵', desc:'10種ミックスティー',         price:1620 },
+    ],
+    cat:'food', tags:['thanks','seasonal','care'], priceRange:[1000,6000],
+  },
+  {
+    id:'set_family', label:'ファミリーギフトセット', price:5360, headerClass:'alt-header',
+    items:[
+      { id:'g6',  name:'NISHIKIYA / ファミリーギフトB',      emoji:'👨‍👩‍👧', desc:'お子様向けカレー＆スープ',  price:5360 },
+      { id:'g12', name:'アンファン / スズランクッキー缶',    emoji:'🍪', desc:'スズランモチーフのクッキー缶',price:1080 },
+      { id:'g7',  name:'Brew Tea Co. / ティーバッグ10コ',    emoji:'🍵', desc:'10種ミックスティー',          price:1620 },
+    ],
+    cat:'food', tags:['birthday','thanks','love'], priceRange:[1000,6000],
+  },
+  {
+    id:'set_glass', label:'暮らしを彩るテーブルセット', price:3300, headerClass:'',
+    items:[
+      { id:'g11', name:'toumei / 箔mamezara 2枚セット',      emoji:'✨', desc:'金箔ガラス豆皿2枚',           price:3300 },
+      { id:'g13', name:'toumei / 箔まめざら coval 3枚セット',emoji:'🌙', desc:'月と円の箔入り豆皿3枚',       price:3300 },
+      { id:'g7',  name:'Brew Tea Co. / ティーバッグ10コ',    emoji:'🍵', desc:'10種ミックスティー',          price:1620 },
+    ],
+    cat:'kitchen', tags:['love','thanks','self','birthday'], priceRange:[1000,4000],
+  },
+  {
+    id:'set_kitchen_premium', label:'プレミアム食器セット', price:9460, headerClass:'alt-header',
+    items:[
+      { id:'g4',  name:'ARAS / 和食セット 丸皿大×2 箸×2',    emoji:'🍽️', desc:'ヒートコレクション和食器',    price:9460 },
+      { id:'g10', name:'ARAS / カレーセット 深皿×2 スプーン×2',emoji:'🍛', desc:'和モダン深皿カレーセット',   price:9240 },
+      { id:'g11', name:'toumei / 箔mamezara 2枚セット',       emoji:'✨', desc:'金箔ガラス豆皿2枚',           price:3300 },
+    ],
+    cat:'kitchen', tags:['thanks','work','seasonal'], priceRange:[3000,10000],
+  },
+  {
+    id:'set_glass_premium', label:'Sghr ガラスウェアセット', price:9240, headerClass:'',
+    items:[
+      { id:'g3',  name:'Sghr / カスケードオールドグラス ペア', emoji:'🥃', desc:'インディゴ×タン ペアグラス',  price:9240 },
+      { id:'g11', name:'toumei / 箔mamezara 2枚セット',        emoji:'✨', desc:'金箔ガラス豆皿2枚',           price:3300 },
+      { id:'g13', name:'toumei / 箔まめざら coval 3枚セット',  emoji:'🌙', desc:'月と円の箔入り豆皿3枚',       price:3300 },
+    ],
+    cat:'kitchen', tags:['love','birthday','thanks','self'], priceRange:[3000,10000],
+  },
+  {
+    id:'set_care_premium', label:'ハイエンドケアセット', price:5500, headerClass:'alt-header',
+    items:[
+      { id:'g9',  name:'CIGARRO / マウスウォッシュ 木箱付',   emoji:'🪥', desc:'200mL＋木箱＋ショットグラス', price:5500 },
+      { id:'g1',  name:'MammaBaby / ハンドソープ',            emoji:'🧼', desc:'天然成分ハンドソープ',        price:1650 },
+      { id:'g7',  name:'Brew Tea Co. / ティーバッグ10コ',     emoji:'🍵', desc:'10種ミックスティー',          price:1620 },
+    ],
+    cat:'relax', tags:['care','self','hidden','thanks'], priceRange:[1000,6000],
+  },
+  {
+    id:'set_sweets_luxury', label:'スイーツ贅沢ギフトセット', price:3564, headerClass:'',
+    items:[
+      { id:'g25', name:'Pierre Hermé / マカロン 6個',         emoji:'🎀', desc:'世界的パティシエのマカロン',   price:3564 },
+      { id:'g22', name:'ロイズ / 生チョコレート アソート',    emoji:'🍫', desc:'なめらかな口溶け生チョコ',     price:2160 },
+      { id:'g21', name:'資生堂パーラー / 花椿ビスケット',     emoji:'🌸', desc:'上品な薔薇型ビスケット',       price:1620 },
+    ],
+    cat:'food', tags:['love','birthday','hidden','thanks'], priceRange:[1000,5000],
+  },
+  {
+    id:'set_relaxation', label:'とっておきリラックスセット', price:4290, headerClass:'alt-header',
+    items:[
+      { id:'g40', name:'SABON / ボディスクラブ ラベンダー',   emoji:'💜', desc:'死海産ミネラル配合スクラブ',   price:4290 },
+      { id:'g41', name:'Lush / バスボム ギフトセット 3個',    emoji:'🛁', desc:'カラフルなバスボム3個',         price:2310 },
+      { id:'g32', name:'Harney & Sons / ティーバッグ缶',      emoji:'🫖', desc:'NYブランドのティーバッグ缶',   price:2200 },
+    ],
+    cat:'relax', tags:['love','care','birthday','self'], priceRange:[2000,6000],
+  },
+  {
+    id:'set_drink_craft', label:'クラフトドリンクセット', price:3800, headerClass:'',
+    items:[
+      { id:'g31', name:'LaCheers / クラフトビール 6本',       emoji:'🍺', desc:'国産クラフトビール6本',         price:3800 },
+      { id:'g30', name:'叶匠壽庵 / 煎茶ギフトセット',         emoji:'🍵', desc:'滋賀の老舗・上品な煎茶',       price:2700 },
+      { id:'g23', name:'神戸風月堂 / ゴーフレット 10枚缶',    emoji:'🧇', desc:'軽やかなウェハース缶',         price:1512 },
+    ],
+    cat:'drink', tags:['thanks','work','care','hidden'], priceRange:[1000,5000],
+  },
+  {
+    id:'set_japanese', label:'和の暮らし雑貨セット', price:3300, headerClass:'alt-header',
+    items:[
+      { id:'g52', name:'中川政七商店 / 花ふきん 3枚セット',   emoji:'🌺', desc:'奈良晒の伝統技法の花柄ふきん', price:3300 },
+      { id:'g53', name:'倉敷意匠 / 陶器 豆皿セット 5枚',      emoji:'🏺', desc:'手仕事感の可愛い豆皿5枚',      price:2750 },
+      { id:'g30', name:'叶匠壽庵 / 煎茶ギフトセット',         emoji:'🍵', desc:'滋賀の老舗・上品な煎茶',       price:2700 },
+    ],
+    cat:'kitchen', tags:['thanks','care','seasonal','duty'], priceRange:[1000,4000],
+  },
+];
+
+// ============================================================
+// STATE
+// ============================================================
+let activeEmotion = null;
+let emotionPriceFilter = 'all';
+let emotionSortOrder = 'match';
+// ---- legacy single-selection (kept for compatibility) ----
+let selectedGiftId = null;
+let selectedIsSet = false;
+let selectedSetData = null;
+// ---- CART ----
+const cart = []; // { uid, type:'single'|'set'|'custom', data:{...} }
+let cartUidSeq = 0;
+let giftCartMode = sessionStorage.getItem('giftalkCartMode') || 'choice';
+
+function setGiftCartMode(mode) {
+  giftCartMode = mode;
+  sessionStorage.setItem('giftalkCartMode', mode);
+  document.getElementById('giftModeChoice').classList.toggle('active', mode === 'choice');
+  document.getElementById('giftModeFull').classList.toggle('active', mode === 'full');
+  updateCartUI();
+}
+// ---- FILTERS ----
+let singleCatFilter = 'all';
+let singlePriceFilter = 'all';
+let singleSortOrder = 'default';
+let setCatFilter = 'all';
+let setPriceFilter = 'all';
+// ---- CUSTOM SET BUILDER ----
+let csmSlots = [null, null, null]; // each: Gift object or null
+let csmCatFilter = 'all';
+
+
+
+// ============================================================
+// PAGE TABS
+// ============================================================
+function switchPageTab(tab, el) {
+  document.querySelectorAll('.page-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + tab).classList.add('active');
+}
+
+// ============================================================
+// INNER TABS (all gifts)
+// ============================================================
+function switchInnerTab(tab, el) {
+  document.querySelectorAll('.inner-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.inner-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('inner-' + tab).classList.add('active');
+}
+
+// ============================================================
+// EMOTION TAB
+// ============================================================
+function renderEmotionGrid() {
+  const grid = document.getElementById('emotionGrid');
+  grid.innerHTML = EMOTIONS.map(e => `
+    <div class="emotion-card" id="em_${e.id}" onclick="selectEmotion('${e.id}')">
+      <span class="ec-emoji">${e.emoji}</span>
+      <div class="ec-label">${e.label}</div>
+      <div class="ec-sub">${e.sub}</div>
+    </div>
+  `).join('');
+}
+
+function selectEmotion(id) {
+  activeEmotion = id;
+  document.querySelectorAll('.emotion-card').forEach(c => c.classList.remove('active'));
+  document.getElementById('em_' + id).classList.add('active');
+
+  const em = EMOTIONS.find(e => e.id === id);
+
+  document.getElementById('propEmotionBadge').textContent = em.emoji + ' ' + em.label;
+  document.getElementById('propSubtitle').textContent = 'の気持ちに合ったギフトを提案します';
+
+  renderProposalSingles(id);
+
+  const area = document.getElementById('proposalArea');
+  area.style.display = 'block';
+  area.scrollIntoView({ behavior:'smooth', block:'start' });
+  showToast(em.emoji + ' ' + em.label + ' のギフトを提案します！');
+}
+
+function setEmotionPrice(v, el) {
+  emotionPriceFilter = v;
+  document.querySelectorAll('#epPriceChips .price-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  if (activeEmotion) renderProposalSingles(activeEmotion);
+}
+
+function setEmotionSort(v, el) {
+  emotionSortOrder = v;
+  document.querySelectorAll('#epSortChips .sort-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  if (activeEmotion) renderProposalSingles(activeEmotion);
+}
+
+function renderProposalSingles(emotionId) {
+  // 感情が直接一致しない場合の代替マッピング
+  const emotionAlt = {
+    cheer:  ['thanks', 'care', 'duty'],   // 応援 → 感謝・労い・義理系で代用
+    secret: ['hidden', 'self', 'love'],   // 裏心 → 下心・自分向けで代用
+  };
+  const altEmotions = emotionAlt[emotionId] || [];
+
+  let pool = GIFTS.filter(g => g.emotions && (
+    g.emotions.includes(emotionId) ||
+    (emotionId === 'hidden' && g.emotions.includes('love')) ||
+    altEmotions.some(e => g.emotions.includes(e))
+  ));
+
+  // 価格フィルター
+  if (emotionPriceFilter !== 'all') {
+    const max = parseInt(emotionPriceFilter);
+    if (max === 99999) {
+      pool = pool.filter(g => g.price >= 6000);
+    } else {
+      pool = pool.filter(g => g.price <= max);
+    }
+  }
+
+  // 並び替え
+  if (emotionSortOrder === 'asc') {
+    pool.sort((a, b) => a.price - b.price);
+  } else if (emotionSortOrder === 'desc') {
+    pool.sort((a, b) => b.price - a.price);
+  } else {
+    // おすすめ順：emotions配列の先頭が一致するものを優先
+    pool.sort((a, b) => {
+      const aScore = a.emotions[0] === emotionId ? 2 : 1;
+      const bScore = b.emotions[0] === emotionId ? 2 : 1;
+      return bScore - aScore || a.price - b.price;
+    });
+  }
+
+  const row = document.getElementById('singleGiftsRow');
+  if (pool.length === 0) {
+    row.innerHTML = '<div class="ep-empty">条件に合うギフトが見つかりませんでした</div>';
+    return;
+  }
+  const picks = pool; // 全件表示
+  row.innerHTML = picks.map(g => {
+    return `
+    <div class="proposal-gift-card ${selectedGiftId === g.id && !selectedIsSet ? 'selected' : ''}" id="pgc_${g.id}" onclick="addSingleToCart('${g.id}', false)">
+      <span class="pgc-sel-mark">✓</span>
+      <div class="pgc-illust" style="background:${getIllustGradient(g)};">
+        <span class="illust-emoji">${g.emoji}</span>
+      </div>
+      <div style="padding:0 2px 2px;">
+        ${g.brand ? `<div style="font-size:0.65rem;font-weight:700;color:#A855F7;margin-bottom:2px;">${g.brand}</div>` : ''}
+        <div class="pgc-name">${g.name}</div>
+        <div class="pgc-price">¥${g.price.toLocaleString()} <span style="font-size:0.65em;opacity:0.7;">税込</span></div>
+        <div class="pgc-desc">${g.desc}</div>
+        <div style="margin-top:8px;font-size:0.7rem;color:#A855F7;font-weight:700;">🛒 カートへ</div>
+      </div>
+    </div>
+  `;}).join('');
+}
+
+function renderProposalSets(emotionId) {
+  const grid = document.getElementById('propSetGrid');
+  const emotionTagMap = { cheer:'cheer', thanks:'thanks', care:'care', hidden:'love', secret:'self', duty:'duty', self:'self' };
+  const tag = emotionTagMap[emotionId];
+  const pool = tag ? ALL_GIFT_SETS.filter(s => s.tags.includes(tag)) : ALL_GIFT_SETS;
+  const picks = pool.slice(0, 3);
+
+  if (picks.length === 0) {
+    grid.innerHTML = `
+      <p style="color:#aaa;font-size:0.85rem;padding:8px 0;">この感情向けのセットは全ギフトから探してみてください。</p>
+      ${renderCustomSetTrigger()}
+    `;
+    return;
+  }
+  grid.innerHTML = picks.map((s, si) => renderSetCard(s, si, 'prop')).join('') + renderCustomSetTrigger();
+  window._propSets = picks;
+}
+
+function renderCustomSetTrigger() {
+  return `
+    <button class="custom-set-trigger" onclick="openCustomSet()">
+      <span class="cst-icon">✏️</span>
+      <span>
+        <strong>オリジナル3択セットを作る</strong><br>
+        <span style="font-size:0.78rem;font-weight:600;opacity:0.75;">好きなギフトを3つ選んでセットにできます</span>
+      </span>
+    </button>
+  `;
+}
+
+// ============================================================
+// SET CARD RENDERER
+// ============================================================
+function renderSetCard(s, si, prefix) {
+  return `
+    <div class="set-card ${s.headerClass || ''} ${selectedIsSet && selectedGiftId === s.id ? 'selected' : ''}" id="setcard_${prefix}_${si}">
+      <div class="set-card-header">
+        <span class="set-card-label">${s.label}</span>
+        <span class="set-card-price">¥${s.price.toLocaleString()}</span>
+      </div>
+      <div class="set-items-row">
+        ${s.items.map((item, ii) => `
+          <div class="set-item" id="si_${prefix}_${si}_${ii}" onclick="hlSetItem('${prefix}',${si},${ii})">
+            <span class="si-emoji">${item.emoji}</span>
+            <div class="si-name">${item.name}</div>
+            <div class="si-desc">${item.desc}</div>
+          </div>
+        `).join('')}
+      </div>
+      <div class="set-card-footer">
+        <span class="set-hint">受け取り手が<strong>3つから選べる</strong></span>
+        <div style="display:flex;gap:7px;align-items:center;">
+          <button class="cart-add-set-btn" onclick="addSetToCart('${s.id}','${prefix}',${si});event.stopPropagation();">
+            <i class="fas fa-shopping-cart"></i> カートへ
+          </button>
+          <button class="btn btn-primary" style="padding:8px 16px;font-size:0.8rem;" onclick="selectSetGift('${s.id}','${prefix}',${si})">
+            すぐ贈る <i class="fas fa-arrow-right"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function hlSetItem(prefix, si, ii) {
+  for (let i = 0; i < 3; i++) {
+    const el = document.getElementById(`si_${prefix}_${si}_${i}`);
+    if (el) el.classList.remove('item-hl');
+  }
+  const target = document.getElementById(`si_${prefix}_${si}_${ii}`);
+  if (target) target.classList.add('item-hl');
+}
+
+// ============================================================
+// SINGLE GIFT SELECT (すぐ贈る — カートを経由せず直接)
+// ============================================================
+function selectSingleGift(giftId, prefix) {
+  const g = GIFTS.find(x => x.id === giftId);
+  if (!g) return;
+  selectedGiftId = g.id;
+  selectedIsSet = false;
+  selectedSetData = null;
+
+  document.querySelectorAll('.proposal-gift-card, .gift-card-single').forEach(el => el.classList.remove('selected'));
+  const card = document.getElementById(`pgc_${giftId}`) || document.getElementById(`sgc_${giftId}`);
+  if (card) card.classList.add('selected');
+
+  // カートにアニメーション追加（パネルは開かない）
+  addSingleToCart(giftId, false);
+}
+
+// ============================================================
+// SET GIFT SELECT (すぐ贈る)
+// ============================================================
+function selectSetGift(setId, prefix, si) {
+  const sets = prefix === 'prop' ? (window._propSets || []) : (window._allSets || ALL_GIFT_SETS);
+  const set = sets.find(s => s.id === setId) || ALL_GIFT_SETS.find(s => s.id === setId);
+  if (!set) return;
+  selectedGiftId = set.id;
+  selectedIsSet = true;
+  selectedSetData = set;
+
+  document.querySelectorAll('.set-card').forEach(c => c.classList.remove('selected'));
+  const card = document.getElementById(`setcard_${prefix}_${si}`);
+  if (card) card.classList.add('selected');
+
+  addSetToCart(setId, prefix, si, true);
+}
+
+// ============================================================
+// CART — ADD SINGLE
+// ============================================================
+function addSingleToCart(giftId, openPanel) {
+  const g = GIFTS.find(x => x.id === giftId);
+  if (!g) return;
+  const item = {
+    uid: ++cartUidSeq,
+    type: 'single',
+    data: { id: g.id, name: g.name, emoji: g.emoji, price: g.price, desc: g.desc, brand: g.brand || '' }
+  };
+  cart.push(item);
+  updateCartUI();
+  showToast(`${g.emoji} ${g.name} をカートに追加しました！`);
+  if (openPanel) openCart();
+  else animateCartFab();
+}
+
+// ============================================================
+// CART — ADD SET
+// ============================================================
+function addSetToCart(setId, prefix, si, openPanel) {
+  const sets = prefix === 'prop' ? (window._propSets || []) : (window._allSets || ALL_GIFT_SETS);
+  const set = sets.find(s => s.id === setId) || ALL_GIFT_SETS.find(s => s.id === setId);
+  if (!set) return;
+  const item = {
+    uid: ++cartUidSeq,
+    type: 'set',
+    data: {
+      id: set.id, name: set.label,
+      emoji: set.items.map(i => i.emoji).join(''),
+      price: set.price, isSet: true, setItems: set.items
+    }
+  };
+  cart.push(item);
+  updateCartUI();
+  showToast(`🎀 「${set.label}」をカートに追加しました！`);
+  if (openPanel) openCart();
+  else animateCartFab();
+}
+
+// ============================================================
+// CART — REMOVE
+// ============================================================
+function removeFromCart(uid) {
+  const idx = cart.findIndex(x => x.uid === uid);
+  if (idx < 0) return;
+  const removed = cart.splice(idx, 1)[0];
+  updateCartUI();
+  showToast(`🗑 「${removed.data.name}」をカートから削除しました`);
+}
+
+// ============================================================
+// CART — UPDATE UI
+// ============================================================
+function updateCartUI() {
+  const count = cart.length;
+  const fab = document.getElementById('cartFab');
+  const badge = document.getElementById('cartBadge');
+  const countBadge = document.getElementById('cartCountBadge');
+  const list = document.getElementById('cartItemsList');
+  const footer = document.getElementById('cartFooter');
+
+  badge.textContent = count;
+  countBadge.textContent = count + '点';
+  fab.classList.toggle('has-items', count > 0);
+
+  if (count === 0) {
+    list.innerHTML = `
+      <div class="cart-empty">
+        <div class="ce-icon">🛒</div>
+        <p>カートにギフトがありません</p>
+        <p style="font-size:0.8rem;margin-top:6px;">ギフトを選んでカートに追加してください</p>
+      </div>`;
+    footer.style.display = 'none';
+  } else {
+    const total = cart.reduce((s, x) => s + (x.data.price || 0), 0);
+    list.innerHTML = cart.map(item => `
+      <div class="cart-item">
+        <div class="cart-item-emoji">${item.data.emoji}</div>
+        <div class="cart-item-info">
+          <div class="cart-item-name">
+            ${item.data.name}
+            ${item.type !== 'single' ? '<span class="cart-item-type">3択SET</span>' : ''}
+          </div>
+          <div class="cart-item-price">¥${(item.data.price || 0).toLocaleString()}</div>
+        </div>
+        <button class="cart-item-remove" onclick="removeFromCart(${item.uid})" title="削除"><i class="fas fa-trash-alt"></i></button>
+      </div>
+    `).join('');
+    // 同価格チェック（単品のみ対象）
+    const singleItems = cart.filter(c => c.type === 'single');
+    const allSamePrice = singleItems.length >= 2 &&
+      singleItems.every(c => c.data.price === singleItems[0].data.price);
+
+    const modeWrap = document.getElementById('cartModeWrap');
+    const totalLabel = document.getElementById('cartTotalLabel');
+    if (allSamePrice) {
+      if (modeWrap) modeWrap.style.display = 'block';
+      // ボタン状態を現在のモードに合わせる
+      document.getElementById('giftModeChoice').classList.toggle('active', giftCartMode === 'choice');
+      document.getElementById('giftModeFull').classList.toggle('active', giftCartMode === 'full');
+    } else {
+      if (modeWrap) modeWrap.style.display = 'none';
+      giftCartMode = 'full';
+    }
+
+    if (giftCartMode === 'choice' && allSamePrice) {
+      document.getElementById('cartTotalVal').textContent = '¥' + singleItems[0].data.price.toLocaleString();
+      if (totalLabel) totalLabel.textContent = '1点分の価格（受け取り手が選ぶ）';
+    } else {
+      document.getElementById('cartTotalVal').textContent = '¥' + total.toLocaleString();
+      if (totalLabel) totalLabel.textContent = '合計金額（目安）';
+    }
+    footer.style.display = 'block';
+  }
+  syncCartToSession();
+}
+
+// Giftalk との sessionStorage 双方向同期
+function syncCartToSession() {
+  try {
+    const items = cart
+      .filter(c => c.type === 'single')
+      .map(c => {
+        const g = GIFTS.find(x => x.id === c.data.id) || {};
+        return {
+          id:       c.data.id,
+          name:     c.data.name,
+          emoji:    c.data.emoji,
+          price:    c.data.price,
+          desc:     c.data.desc || '',
+          brand:    c.data.brand || g.brand || '',
+          category: g.cat || '',
+          qty:      1,
+        };
+      });
+    sessionStorage.setItem('giftalkCartState', JSON.stringify(items));
+  } catch(e) {}
+}
+
+function restoreGiftalkCart() {
+  try {
+    const saved = sessionStorage.getItem('giftalkCartState');
+    if (!saved) return;
+    const items = JSON.parse(saved);
+    if (!Array.isArray(items) || items.length === 0) return;
+    const existingIds = new Set(cart.map(c => c.data && c.data.id));
+    items.forEach(item => {
+      if (existingIds.has(item.id)) return; // 重複スキップ
+      cart.push({
+        uid:  ++cartUidSeq,
+        type: 'single',
+        data: { id: item.id, name: item.name, emoji: item.emoji, price: item.price, desc: item.desc || '', brand: item.brand || '' },
+      });
+    });
+    updateCartUI();
+  } catch(e) {}
+}
+
+function animateCartFab() {
+  const fab = document.getElementById('cartFab');
+  fab.style.transform = 'scale(1.35)';
+  setTimeout(() => { fab.style.transform = ''; }, 280);
+}
+
+// ============================================================
+// CART — OPEN / CLOSE
+// ============================================================
+function openCart() {
+  updateCartUI();
+  document.getElementById('cartOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeCart() {
+  document.getElementById('cartOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// ============================================================
+// GO TO AVATAR — カートの中身をsessionStorageに渡す
+// ============================================================
+function goToAvatar() {
+  if (cart.length === 0) {
+    showToast('カートにギフトを追加してください');
+    return;
+  }
+  // カートの内容をgiftDataとして渡す（複数対応）
+  const giftData = cart.length === 1
+    ? cart[0].data
+    : {
+        id: 'cart_multi',
+        name: cart.map(x => x.data.name).join('・'),
+        emoji: cart[0].data.emoji,
+        price: cart.reduce((s, x) => s + (x.data.price || 0), 0),
+        isSet: cart.some(x => x.type !== 'single'),
+        isCart: true,
+        cartItems: cart.map(x => x.data),
+      };
+
+  // giftalk.htmlと共通のlocalStorage形式でも保存（カート共有）
+  const sharedCart = cart.map(x => ({ ...x.data, qty: 1 }));
+  localStorage.setItem('giftalkCart', JSON.stringify(sharedCart));
+  sessionStorage.setItem('selectedGift', JSON.stringify(giftData));
+
+  // 三択モード情報を引き継ぐ
+  const singleItems = cart.filter(c => c.type === 'single');
+  const allSamePrice = singleItems.length >= 2 &&
+    singleItems.every(c => c.data.price === singleItems[0].data.price);
+  sessionStorage.setItem('cartMode', (allSamePrice && giftCartMode === 'choice') ? 'choice' : 'full');
+  sessionStorage.setItem('allCartItems', JSON.stringify(
+    singleItems.map(c => ({ id: c.data.id, name: c.data.name, emoji: c.data.emoji, price: c.data.price, desc: c.data.desc || '', brand: c.data.brand || '' }))
+  ));
+
+  // Okuri-Bit経由（?ob=1）の場合はモーダルをスキップしてアバター作成へ直行
+  const isOb = new URLSearchParams(window.location.search).get('ob') === '1';
+  if (isOb) {
+    closeCart();
+    window.location.href = 'avatar.html';
+    return;
+  }
+
+  // 通常フロー：カートを閉じてアバター確認モーダルを開く
+  closeCart();
+  openAvatarConfirm(giftData);
+}
+
+// ============================================================
+// CUSTOM SET BUILDER — OPEN / CLOSE
+// ============================================================
+function openCustomSet() {
+  csmSlots = [null, null, null];
+  csmCatFilter = 'all';
+  document.getElementById('csmSearchInput').value = '';
+  if (document.getElementById('csmSetName')) document.getElementById('csmSetName').value = '';
+  renderCsmSlots();
+  renderCsmCatRow();
+  renderCsmGifts();
+  updateCsmProgress();
+  document.getElementById('customSetOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeCustomSet() {
+  document.getElementById('customSetOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// ============================================================
+// CUSTOM SET BUILDER — SLOTS
+// ============================================================
+function renderCsmSlots() {
+  csmSlots.forEach((gift, i) => {
+    const slot = document.getElementById(`csmSlot${i}`);
+    if (!slot) return;
+    if (gift) {
+      slot.className = 'csm-slot filled';
+      slot.innerHTML = `
+        <div class="csm-slot-num">選択肢 ${i+1}</div>
+        <div class="csm-slot-emoji">${gift.emoji}</div>
+        <div class="csm-slot-name">${gift.name}</div>
+        <div class="csm-slot-price">¥${gift.price.toLocaleString()}</div>
+        <button class="csm-slot-remove" onclick="removeCsmSlot(${i})" title="外す"><i class="fas fa-times"></i></button>
+      `;
+    } else {
+      slot.className = 'csm-slot';
+      slot.innerHTML = `
+        <div class="csm-slot-num">選択肢 ${i+1}</div>
+        <div class="csm-slot-placeholder">タップして<br>追加</div>
+      `;
+    }
+  });
+}
+
+function removeCsmSlot(i) {
+  csmSlots[i] = null;
+  renderCsmSlots();
+  renderCsmGifts();
+  updateCsmProgress();
+}
+
+// ============================================================
+// CUSTOM SET BUILDER — GIFT PICKER
+// ============================================================
+function renderCsmCatRow() {
+  const row = document.getElementById('csmCatRow');
+  row.innerHTML = Object.entries(CAT_LABELS).map(([k,v]) => `
+    <button class="csm-cat-chip ${k === csmCatFilter ? 'active' : ''}" onclick="setCsmCat('${k}')">${v}</button>
+  `).join('');
+}
+
+function setCsmCat(cat) {
+  csmCatFilter = cat;
+  renderCsmCatRow();
+  renderCsmGifts();
+}
+
+function renderCsmGifts() {
+  const q = (document.getElementById('csmSearchInput').value || '').toLowerCase();
+  const inSlotIds = csmSlots.filter(Boolean).map(g => g.id);
+  const filledCount = inSlotIds.length;
+  const allFull = filledCount >= 3;
+
+  const filtered = GIFTS.filter(g => {
+    const matchCat = csmCatFilter === 'all' || g.cat === csmCatFilter;
+    const matchQ = !q || g.name.toLowerCase().includes(q) || g.desc.toLowerCase().includes(q);
+    return matchCat && matchQ;
+  });
+
+  const grid = document.getElementById('csmGiftGrid');
+  grid.innerHTML = filtered.map(g => {
+    const inSlot = inSlotIds.includes(g.id);
+    const cls = inSlot ? 'in-slot' : (allFull && !inSlot ? 'slot-full' : '');
+    return `
+      <div class="csm-gift-item ${cls}" onclick="addToCsmSlot('${g.id}')">
+        <span class="csm-add-mark">✓</span>
+        <span class="csmi-emoji">${g.emoji}</span>
+        <div class="csmi-name">${g.name}</div>
+        <div class="csmi-price">¥${g.price.toLocaleString()}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function addToCsmSlot(giftId) {
+  const g = GIFTS.find(x => x.id === giftId);
+  if (!g) return;
+  // 既にスロット内にある場合は削除
+  const existIdx = csmSlots.findIndex(s => s && s.id === giftId);
+  if (existIdx >= 0) { removeCsmSlot(existIdx); return; }
+  // 空きスロットを探す
+  const emptyIdx = csmSlots.findIndex(s => s === null);
+  if (emptyIdx < 0) { showToast('スロットがいっぱいです（最大3つ）'); return; }
+  csmSlots[emptyIdx] = g;
+  renderCsmSlots();
+  renderCsmGifts();
+  updateCsmProgress();
+}
+
+function updateCsmProgress() {
+  const filled = csmSlots.filter(Boolean).length;
+  const pct = Math.round((filled / 3) * 100);
+  document.getElementById('csmProgressFill').style.width = pct + '%';
+  document.getElementById('csmProgressCount').textContent = `${filled} / 3`;
+  const labels = ['ギフトを3つ選んでください', 'あと2つ選んでください', 'あと1つ選んでください', '✅ 3つ選びました！カートに追加できます'];
+  document.getElementById('csmProgressText').textContent = labels[filled] || '';
+  const btn = document.getElementById('csmConfirmBtn');
+  if (btn) btn.disabled = filled < 3;
+}
+
+// ============================================================
+// CUSTOM SET BUILDER — CONFIRM
+// ============================================================
+function confirmCustomSet() {
+  const filled = csmSlots.filter(Boolean);
+  if (filled.length < 3) { showToast('3つのギフトを選んでください'); return; }
+  const nameInput = document.getElementById('csmSetName');
+  const setName = (nameInput && nameInput.value.trim()) || 'オリジナル3択セット';
+  const avgPrice = Math.round(filled.reduce((s, g) => s + g.price, 0) / 3);
+
+  const customSet = {
+    id: 'custom_' + Date.now(),
+    name: setName,
+    emoji: filled.map(g => g.emoji).join(''),
+    price: avgPrice,
+    isSet: true,
+    isCustom: true,
+    setItems: filled.map(g => ({ id: g.id, name: g.name, emoji: g.emoji, price: g.price, desc: g.desc }))
+  };
+
+  const item = { uid: ++cartUidSeq, type: 'custom', data: customSet };
+  cart.push(item);
+  updateCartUI();
+  showToast(`🎀 「${setName}」をカートに追加しました！`);
+  closeCustomSet();
+  openCart();
+}
+
+// Legacy clearSelection — kept for any stale refs
+function clearSelection() {
+  selectedGiftId = null; selectedIsSet = false; selectedSetData = null;
+  document.querySelectorAll('.proposal-gift-card,.gift-card-single,.set-card').forEach(el=>el.classList.remove('selected'));
+}
+
+// ============================================================
+// ALL GIFTS TAB — SINGLE
+// ============================================================
+const CAT_LABELS = {
+  all:'🌟 すべて', sweets:'🍰 スイーツ', food:'🍽️ 食べ物', tea:'🫖 お茶', coffee:'☕ コーヒー',
+  beauty:'💄 美容', handkerchief:'🌸 ハンカチ', towel:'🏳️ タオル',
+  tableware:'🍚 食器', kitchen:'🍴 キッチン', interior:'🏺 インテリア',
+  aroma:'🪷 アロマ', bath:'🛁 入浴剤', flower:'💐 フラワー', baby:'👶 ベビー',
+  wagashi:'🍡 和菓子', bag:'👜 バッグ',
+};
+const PRICE_LABELS = { all:'💴 すべて', 1000:'〜¥1,000', 1500:'〜¥1,500', 2000:'〜¥2,000', 2500:'〜¥2,500' };
+const SET_CAT_LABELS = { all:'🌟 すべて', food:'🍽️ 食べ物', beauty:'💄 美容', tableware:'🍚 食器' };
+
+function buildFilterRows() {
+  // Single cat
+  const scr = document.getElementById('singleCatRow');
+  scr.innerHTML = Object.entries(CAT_LABELS).map(([k,v]) => `
+    <button class="filter-chip ${k==='all'?'active':''}" data-cat="${k}" onclick="setSingleCat('${k}',this)">${v}</button>
+  `).join('');
+  // Single price
+  const spr = document.getElementById('singlePriceRow');
+  spr.innerHTML = Object.entries(PRICE_LABELS).map(([k,v]) => `
+    <button class="price-chip ${k==='all'?'active':''}" data-price="${k}" onclick="setSinglePrice('${k}',this)">${v}</button>
+  `).join('');
+  // Set cat
+  const scr2 = document.getElementById('setCatRow');
+  scr2.innerHTML = Object.entries(SET_CAT_LABELS).map(([k,v]) => `
+    <button class="filter-chip ${k==='all'?'active':''}" data-cat="${k}" onclick="setSetCat('${k}',this)">${v}</button>
+  `).join('');
+  // Set price
+  const spr2 = document.getElementById('setPriceRow');
+  spr2.innerHTML = Object.entries(PRICE_LABELS).map(([k,v]) => `
+    <button class="price-chip ${k==='all'?'active':''}" data-price="${k}" onclick="setSetPrice('${k}',this)">${v}</button>
+  `).join('');
+}
+
+function setSingleCat(v, el) {
+  singleCatFilter = v;
+  document.querySelectorAll('#singleCatRow .filter-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderSingleGifts();
+}
+function setSinglePrice(v, el) {
+  singlePriceFilter = v;
+  document.querySelectorAll('#singlePriceRow .price-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderSingleGifts();
+}
+function setSetCat(v, el) {
+  setCatFilter = v;
+  document.querySelectorAll('#setCatRow .filter-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderAllSets();
+}
+function setSetPrice(v, el) {
+  setPriceFilter = v;
+  document.querySelectorAll('#setPriceRow .price-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderAllSets();
+}
+
+function setSingleSort(order, el) {
+  singleSortOrder = order;
+  document.querySelectorAll('.sort-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderSingleGifts();
+}
+
+function renderSingleGifts() {
+  const q = (document.getElementById('singleSearch').value || '').toLowerCase();
+  const filtered = GIFTS.filter(g => {
+    const matchCat = singleCatFilter === 'all' || g.cat === singleCatFilter;
+    const matchPrice = singlePriceFilter === 'all' || g.price <= parseInt(singlePriceFilter);
+    const matchQ = !q || g.name.toLowerCase().includes(q) || g.desc.toLowerCase().includes(q);
+    return matchCat && matchPrice && matchQ;
+  });
+  if (singleSortOrder === 'asc')  filtered.sort((a, b) => a.price - b.price);
+  if (singleSortOrder === 'desc') filtered.sort((a, b) => b.price - a.price);
+  const grid = document.getElementById('singleGrid');
+  const empty = document.getElementById('singleEmpty');
+  if (filtered.length === 0) { grid.innerHTML = ''; empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+  grid.innerHTML = filtered.map(g => {
+    return `
+    <div class="gift-card ${selectedGiftId === g.id && !selectedIsSet ? 'selected' : ''}" id="sgc_${g.id}" onclick="selectSingleGift('${g.id}','all')">
+      <div class="gift-illust" style="background:${getIllustGradient(g)};">
+        <span class="illust-emoji">${g.emoji}</span>
+      </div>
+      <div style="padding:0 4px 2px;">
+        ${g.brand ? `<div class="gift-brand">${g.brand}</div>` : ''}
+        <div class="gift-name">${g.name}</div>
+        <div class="gift-price">¥${g.price.toLocaleString()} <span style="font-size:0.7em;font-weight:500;opacity:0.7;">（税込）</span></div>
+        <div class="gift-desc">${g.desc}</div>
+      </div>
+      <button class="add-to-cart-btn" title="カートに追加" onclick="addSingleToCart('${g.id}');event.stopPropagation();"><i class="fas fa-plus"></i></button>
+    </div>
+  `;}).join('');
+}
+
+function renderAllSets() {
+  const filtered = ALL_GIFT_SETS.filter(s => {
+    const matchCat = setCatFilter === 'all' || s.cat === setCatFilter;
+    const maxPrice = setPriceFilter === 'all' ? Infinity : parseInt(setPriceFilter);
+    const matchPrice = s.price <= maxPrice;
+    return matchCat && matchPrice;
+  });
+  window._allSets = filtered;
+  const grid = document.getElementById('setsGrid');
+  const empty = document.getElementById('setsEmpty');
+  empty.style.display = 'none';
+  // カスタムセット作成トリガーを末尾に追加
+  grid.innerHTML = filtered.map((s, si) => renderSetCard(s, si, 'all')).join('') + renderCustomSetTrigger();
+}
+
+// ============================================================
+// TOAST / PARTICLES / INIT
+// ============================================================
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function initParticles() {
+  const c = document.getElementById('particles');
+  const emojis = ['🎁','💝','⭐','✨','🌟','💫','🎀','🌸'];
+  for (let i = 0; i < 10; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    p.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+    p.style.left = Math.random() * 100 + '%';
+    p.style.animationDuration = (8 + Math.random() * 10) + 's';
+    p.style.animationDelay = (Math.random() * 10) + 's';
+    p.style.fontSize = (0.9 + Math.random() * 0.8) + 'rem';
+    c.appendChild(p);
+  }
+}
+
+// Check URL param for pre-selected emotion
+function checkUrlParams() {
+  const params = new URLSearchParams(location.search);
+
+  // ?tab=all でギフト一覧タブを開く（Giftalkから来た場合など）
+  const tab = params.get('tab');
+  if (tab === 'all') {
+    const allTabBtn = Array.from(document.querySelectorAll('.page-tab'))
+      .find(btn => btn.textContent.includes('全ギフト'));
+    if (allTabBtn) switchPageTab('all', allTabBtn);
+  }
+
+  // ?emotion=xxx で気持ちタブの感情を選択
+  const em = params.get('emotion');
+  if (em && EMOTIONS.find(e => e.id === em)) {
+    selectEmotion(em);
+  }
+}
+
+// Init
+initParticles();
+renderEmotionGrid();
+buildFilterRows();
+renderSingleGifts();
+renderAllSets();
+checkUrlParams();
+window._allSets = ALL_GIFT_SETS;
+restoreGiftalkCart(); // Giftalkからのカートを復元
+updateCartUI();
+
+// ESC キーでモーダルを閉じる
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    closeCart();
+    closeCustomSet();
+  }
+});
+</script>
+<script>
+function toggleDrawer(){const d=document.getElementById('navDrawer'),h=document.getElementById('navHamburger');d.classList.toggle('open');h.classList.toggle('open');document.body.style.overflow=d.classList.contains('open')?'hidden':'';}
+function closeDrawer(){const d=document.getElementById('navDrawer'),h=document.getElementById('navHamburger');d.classList.remove('open');h.classList.remove('open');document.body.style.overflow='';}
+</script>
+
+<!-- ===== アバター確認モーダル ===== -->
+<style>
+  .avatar-confirm-overlay {
+    position: fixed; inset: 0; z-index: 1000;
+    display: flex; align-items: flex-end; justify-content: center;
+    background: rgba(0,0,0,0.55);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.3s;
+  }
+  .avatar-confirm-overlay.open { opacity: 1; pointer-events: all; }
+  .avatar-confirm-sheet {
+    background: white;
+    border-radius: 28px 28px 0 0;
+    padding: 28px 24px 40px;
+    width: 100%; max-width: 520px;
+    transform: translateY(100%);
+    transition: transform 0.38s cubic-bezier(0.34,1.56,0.64,1);
+    box-shadow: 0 -8px 40px rgba(0,0,0,0.18);
+  }
+  .avatar-confirm-overlay.open .avatar-confirm-sheet { transform: translateY(0); }
+  .acm-handle { width: 44px; height: 5px; background: #e0d4f7; border-radius: 3px; margin: 0 auto 22px; }
+  .acm-title {
+    font-size: 1.15rem; font-weight: 900; color: #222;
+    margin-bottom: 6px; text-align: center;
+  }
+  .acm-subtitle { font-size: 0.82rem; color: #888; text-align: center; margin-bottom: 22px; }
+  .acm-toggle-row {
+    display: flex; align-items: center; justify-content: space-between;
+    background: linear-gradient(135deg,#FFF5F8,#F8F0FF);
+    border: 2px solid #e8d8ff; border-radius: 18px;
+    padding: 16px 20px; margin-bottom: 20px; gap: 14px;
+  }
+  .acm-toggle-info { flex: 1; }
+  .acm-toggle-label {
+    font-size: 1rem; font-weight: 800; color: #333;
+    display: flex; align-items: center; gap: 8px; margin-bottom: 4px;
+  }
+  .acm-toggle-desc { font-size: 0.75rem; color: #999; line-height: 1.45; }
+  /* トグルスイッチ */
+  .acm-switch { position: relative; width: 52px; height: 28px; flex-shrink: 0; }
+  .acm-switch input { opacity: 0; width: 0; height: 0; }
+  .acm-slider {
+    position: absolute; inset: 0; border-radius: 28px;
+    background: #ddd; cursor: pointer;
+    transition: background 0.25s;
+  }
+  .acm-slider::before {
+    content: ''; position: absolute;
+    width: 22px; height: 22px; border-radius: 50%;
+    background: white; left: 3px; top: 3px;
+    transition: transform 0.25s;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  }
+  .acm-switch input:checked + .acm-slider { background: linear-gradient(135deg,#FF6B9D,#A855F7); }
+  .acm-switch input:checked + .acm-slider::before { transform: translateX(24px); }
+  .acm-preview {
+    display: flex; gap: 10px; margin-bottom: 22px;
+  }
+  .acm-opt {
+    flex: 1; border: 2px solid #eee; border-radius: 16px;
+    padding: 14px 10px; text-align: center; cursor: pointer;
+    transition: all 0.2s; background: white;
+  }
+  .acm-opt:hover { border-color: #A855F7; }
+  .acm-opt.active { border-color: #FF6B9D; background: linear-gradient(145deg,#FFF0F7,#F0E8FF); }
+  .acm-opt-icon { font-size: 2rem; display: block; margin-bottom: 6px; }
+  .acm-opt-title { font-size: 0.82rem; font-weight: 800; color: #333; margin-bottom: 3px; }
+  .acm-opt-desc { font-size: 0.68rem; color: #aaa; line-height: 1.4; }
+  .acm-buttons { display: flex; flex-direction: column; gap: 10px; }
+  .acm-btn-main {
+    width: 100%; padding: 16px;
+    background: linear-gradient(135deg,#FF6B9D,#A855F7);
+    color: white; border: none; border-radius: 50px;
+    font-size: 1rem; font-weight: 900; cursor: pointer;
+    font-family: inherit; transition: all 0.25s;
+    box-shadow: 0 6px 20px rgba(255,107,157,0.4);
+  }
+  .acm-btn-main:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(255,107,157,0.5); }
+  .acm-btn-skip {
+    width: 100%; padding: 12px;
+    background: none; border: 2px solid #e0d4f7;
+    color: #A855F7; border-radius: 50px;
+    font-size: 0.88rem; font-weight: 800; cursor: pointer;
+    font-family: inherit; transition: all 0.2s;
+  }
+  .acm-btn-skip:hover { background: #f5ecff; }
+</style>
+
+<div class="avatar-confirm-overlay" id="avatarConfirmOverlay">
+  <div class="avatar-confirm-sheet" id="avatarConfirmSheet">
+    <div class="acm-handle"></div>
+    <div class="acm-title">🎁 ギフトの贈り方を選んでください</div>
+    <div class="acm-subtitle">アバターを作成すると、受け取り手に特別な体験が届きます✨</div>
+
+    <div class="acm-buttons" style="gap:12px;">
+      <button class="acm-btn-main" onclick="acmGoAvatar()"
+        style="background:linear-gradient(135deg,#FF6B9D,#A855F7);">
+        🤖 アバターを作って贈る
+      </button>
+      <button class="acm-btn-main" onclick="acmGoDirect()"
+        style="background:linear-gradient(135deg,#A855F7,#7c3aed);">
+        🎁 そのまま贈る
+      </button>
+      <button class="acm-btn-skip" onclick="acmSkip()">キャンセル</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── アバター確認モーダル ──
+let _acmPendingGiftData = null;
+
+function openAvatarConfirm(giftData) {
+  _acmPendingGiftData = giftData;
+  document.getElementById('avatarConfirmOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeAvatarConfirm() {
+  document.getElementById('avatarConfirmOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+  _acmPendingGiftData = null;
+}
+function acmGoAvatar() {
+  if (!_acmPendingGiftData) return;
+  sessionStorage.setItem('selectedGift', JSON.stringify(_acmPendingGiftData));
+  closeAvatarConfirm();
+  window.location.href = 'avatar.html';
+}
+function acmGoDirect() {
+  if (!_acmPendingGiftData) return;
+  sessionStorage.setItem('selectedGift', JSON.stringify(_acmPendingGiftData));
+  closeAvatarConfirm();
+  window.location.href = 'message-simple.html';
+}
+function acmSkip() {
+  closeAvatarConfirm();
+}
+// オーバーレイ背景クリックで閉じる
+document.getElementById('avatarConfirmOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeAvatarConfirm();
+});
+// ESC でも閉じる
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeAvatarConfirm();
+});
+</script>
+</body>
+</html>

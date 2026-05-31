@@ -1,0 +1,3526 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ギフトが届いています！ - OKURIATO</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+  <style>
+    body {
+      background: #0a0015;
+      min-height: 100vh;
+      overflow-x: hidden;
+      font-family: 'Noto Sans JP', 'Nunito', sans-serif;
+    }
+
+    /* ===== Intro Screen ===== */
+    #introScreen {
+      position: fixed; inset: 0;
+      background: radial-gradient(ellipse at center, #1a0030 0%, #0a0015 100%);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      z-index: 500;
+      transition: opacity 0.8s ease;
+    }
+    #introScreen.fade-out { opacity: 0; pointer-events: none; }
+
+    .star-field {
+      position: absolute; inset: 0;
+      pointer-events: none;
+    }
+    .star {
+      position: absolute;
+      background: white;
+      border-radius: 50%;
+      animation: twinkle linear infinite;
+    }
+    @keyframes twinkle {
+      0%, 100% { opacity: 0.1; transform: scale(0.8); }
+      50% { opacity: 1; transform: scale(1.2); }
+    }
+
+    .intro-logo {
+      font-size: 1.4rem;
+      font-weight: 900;
+      background: linear-gradient(135deg, #FF6B9D, #A855F7);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 32px;
+      letter-spacing: 2px;
+    }
+
+    .gift-box-container {
+      position: relative;
+      cursor: pointer;
+      animation: float 2.5s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-18px); }
+    }
+    .gift-box-svg {
+      width: 160px;
+      height: 160px;
+      filter: drop-shadow(0 0 30px rgba(255, 107, 157, 0.7));
+    }
+
+    .tap-hint {
+      color: rgba(255,255,255,0.6);
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-top: 24px;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 0.4; }
+      50% { opacity: 1; }
+    }
+
+    .sender-badge {
+      position: absolute;
+      top: -16px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, #FF6B9D, #A855F7);
+      color: white;
+      padding: 6px 20px;
+      border-radius: 50px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      white-space: nowrap;
+      box-shadow: 0 4px 16px rgba(255,107,157,0.5);
+    }
+
+    /* ===== Main Content ===== */
+    #mainContent {
+      display: none;
+      min-height: 100vh;
+      background: linear-gradient(170deg, #1a0030 0%, #0d0020 40%, #000510 100%);
+    }
+    #mainContent.visible { display: block; }
+
+    /* Stage */
+    .gift-stage {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px 40px;
+      overflow: hidden;
+    }
+
+    /* Spotlight */
+    .spotlight {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(ellipse at top, rgba(168,85,247,0.25) 0%, transparent 65%);
+      pointer-events: none;
+    }
+
+    /* To / From */
+    .to-from {
+      text-align: center;
+      margin-bottom: 24px;
+      z-index: 2;
+      animation: slideInUp 0.7s ease forwards;
+    }
+    .to-text {
+      font-size: 0.82rem;
+      color: rgba(255,255,255,0.5);
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .from-name {
+      font-size: 1.3rem;
+      font-weight: 900;
+      color: white;
+    }
+    .from-name .highlight-name {
+      background: linear-gradient(90deg, #FF6B9D, #A855F7);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* Avatar Stage */
+    .avatar-performance {
+      z-index: 2;
+      position: relative;
+      margin-bottom: 0;
+    }
+
+    .avatar-glow {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 260px; height: 260px;
+      border-radius: 50%;
+      background: radial-gradient(ellipse, rgba(255,107,157,0.3) 0%, transparent 70%);
+      animation: glowPulse 2s ease-in-out infinite;
+    }
+    @keyframes glowPulse {
+      0%, 100% { transform: translate(-50%,-50%) scale(1); opacity: 0.8; }
+      50% { transform: translate(-50%,-50%) scale(1.2); opacity: 0.4; }
+    }
+
+    #mainAvatarCanvas {
+      width: 240px; height: 240px;
+      position: relative; z-index: 2;
+      filter: drop-shadow(0 0 20px rgba(255,107,157,0.4));
+    }
+
+    /* Avatar Name Bubble */
+    .avatar-name-bubble {
+      background: rgba(255,255,255,0.1);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: white;
+      padding: 6px 18px;
+      border-radius: 50px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      margin-top: -8px;
+      z-index: 2;
+      position: relative;
+    }
+
+    /* Speech Bubble */
+    .speech-bubble {
+      position: relative;
+      background: rgba(255,255,255,0.95);
+      border-radius: 20px;
+      padding: 18px 22px;
+      max-width: 340px;
+      margin: 16px 0;
+      z-index: 2;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      animation: fadeInScale 0.6s 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    }
+    .speech-bubble::before {
+      content: '';
+      position: absolute;
+      top: -14px; left: 50%;
+      transform: translateX(-50%);
+      border: 8px solid transparent;
+      border-bottom-color: rgba(255,255,255,0.95);
+    }
+    .speech-text {
+      font-size: 1rem;
+      line-height: 1.7;
+      color: #2D2D2D;
+      font-weight: 500;
+      text-align: center;
+    }
+
+    /* Gift Reveal */
+    .gift-reveal-area {
+      z-index: 2;
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+      animation: slideInUp 0.7s 0.6s ease both;
+    }
+
+    .gift-reveal-card {
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 28px;
+      padding: 28px 24px;
+      margin-bottom: 20px;
+    }
+
+    .gift-big-emoji {
+      font-size: 5rem;
+      display: block;
+      margin-bottom: 12px;
+      animation: bounce 1.5s ease-in-out infinite;
+      filter: drop-shadow(0 4px 16px rgba(255,215,0,0.5));
+    }
+
+    /* 商品写真クロップ表示 */
+    .rv-gift-photo {
+      width: 100%;
+      height: 200px;
+      border-radius: 28px 28px 0 0;
+      display: block;
+      flex-shrink: 0;
+    }
+
+    .rv-gift-brand {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #c4b5fd;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+    }
+
+    .rv-gift-desc {
+      font-size: 0.82rem;
+      color: rgba(255,255,255,0.6);
+      margin-bottom: 8px;
+      line-height: 1.5;
+    }
+
+    .gift-reveal-name {
+      font-size: 1.3rem;
+      font-weight: 900;
+      color: white;
+      margin-bottom: 6px;
+      line-height: 1.3;
+    }
+
+    .gift-reveal-price {
+      font-size: 1rem;
+      font-weight: 700;
+      background: linear-gradient(90deg, #FFD700, #FF8C42);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* Reaction Section */
+    .reaction-section {
+      z-index: 2;
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+      padding-bottom: 40px;
+    }
+
+    .reaction-title {
+      color: rgba(255,255,255,0.8);
+      font-size: 0.88rem;
+      font-weight: 700;
+      margin-bottom: 14px;
+      letter-spacing: 1px;
+    }
+
+    .reaction-emojis {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+
+    .reaction-emoji-btn {
+      width: 60px; height: 60px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.15);
+      background: rgba(255,255,255,0.08);
+      font-size: 1.8rem;
+      cursor: pointer;
+      transition: all 0.25s;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .reaction-emoji-btn:hover, .reaction-emoji-btn.selected {
+      transform: scale(1.2);
+      border-color: var(--primary);
+      background: rgba(255,107,157,0.2);
+      box-shadow: 0 0 20px rgba(255,107,157,0.4);
+    }
+
+    .reaction-msg-area {
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 16px;
+      padding: 14px 16px;
+      color: white;
+      font-size: 0.9rem;
+      font-family: inherit;
+      width: 100%;
+      outline: none;
+      resize: none;
+      min-height: 90px;
+      margin-bottom: 14px;
+      transition: border-color 0.2s;
+    }
+    .reaction-msg-area:focus { border-color: var(--primary); }
+    .reaction-msg-area::placeholder { color: rgba(255,255,255,0.35); }
+
+    .react-send-btn {
+      width: 100%;
+      padding: 16px;
+      border-radius: 50px;
+      background: linear-gradient(135deg, #FF6B9D, #A855F7);
+      color: white;
+      font-size: 1rem;
+      font-weight: 800;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 6px 24px rgba(255,107,157,0.45);
+      transition: all 0.25s;
+      font-family: inherit;
+    }
+    .react-send-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 32px rgba(255,107,157,0.55); }
+    .react-send-btn:disabled { opacity: 0.6; pointer-events: none; }
+
+    /* Sent Reaction Confirmation */
+    .reaction-sent {
+      display: none;
+      text-align: center;
+      padding: 28px;
+      animation: fadeInScale 0.5s ease forwards;
+    }
+    .reaction-sent.show { display: block; }
+    .reaction-sent-icon { font-size: 3.5rem; margin-bottom: 12px; }
+    .reaction-sent-title { font-size: 1.2rem; font-weight: 800; color: white; margin-bottom: 8px; }
+    .reaction-sent-sub { color: rgba(255,255,255,0.55); font-size: 0.88rem; }
+
+    /* Floating hearts / stars around avatar */
+    .float-decoration {
+      position: absolute;
+      pointer-events: none;
+      z-index: 3;
+      animation: floatDeco ease-in-out infinite;
+    }
+    @keyframes floatDeco {
+      0%, 100% { transform: translateY(0) scale(1); opacity: 0.8; }
+      50% { transform: translateY(-15px) scale(1.1); opacity: 1; }
+    }
+
+    /* Opening animation overlay */
+    #openOverlay {
+      position: fixed; inset: 0;
+      background: white;
+      z-index: 300;
+      pointer-events: none;
+      opacity: 0;
+    }
+    #openOverlay.flash {
+      animation: flashAnim 0.6s ease forwards;
+    }
+    @keyframes flashAnim {
+      0% { opacity: 0; }
+      30% { opacity: 0.9; }
+      100% { opacity: 0; }
+    }
+
+    /* Loading State */
+    #loadingState {
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      min-height: 100vh;
+      background: radial-gradient(ellipse at center, #1a0030 0%, #0a0015 100%);
+    }
+    .load-spinner {
+      width: 56px; height: 56px;
+      border: 5px solid rgba(255,255,255,0.1);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 20px;
+    }
+
+    /* Error state */
+    #errorState { display:none; }
+    #errorState.show { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; text-align:center; padding:40px; }
+
+    /* ===== Set Gift Choice UI ===== */
+    .set-choice-area {
+      width: 100%;
+      text-align: center;
+    }
+
+    .set-choice-label {
+      color: rgba(255,255,255,0.65);
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .set-choice-title {
+      font-size: 1.15rem;
+      font-weight: 900;
+      color: white;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .set-cards-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    @media (max-width: 400px) {
+      .set-cards-grid { grid-template-columns: 1fr; gap: 10px; }
+    }
+
+    .set-item-card {
+      background: rgba(255,255,255,0.07);
+      backdrop-filter: blur(16px);
+      border: 2px solid rgba(255,255,255,0.12);
+      border-radius: 20px;
+      padding: 18px 10px;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    .set-item-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 18px;
+      background: linear-gradient(135deg, rgba(255,107,157,0.15), rgba(168,85,247,0.15));
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .set-item-card:hover {
+      border-color: rgba(255,107,157,0.5);
+      transform: translateY(-4px) scale(1.03);
+      box-shadow: 0 12px 36px rgba(255,107,157,0.25);
+    }
+    .set-item-card:hover::before { opacity: 1; }
+    .set-item-card.selected {
+      border-color: #FF6B9D;
+      background: rgba(255,107,157,0.15);
+      transform: translateY(-6px) scale(1.05);
+      box-shadow: 0 16px 48px rgba(255,107,157,0.4);
+    }
+    .set-item-card.selected::before { opacity: 1; }
+    .set-item-card.not-selected {
+      opacity: 0.45;
+      transform: scale(0.96);
+      pointer-events: none;
+    }
+
+    .set-check-badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #FF6B9D, #A855F7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      color: white;
+      opacity: 0;
+      transform: scale(0);
+      transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .set-item-card.selected .set-check-badge {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .set-item-emoji {
+      font-size: 2.6rem;
+      filter: drop-shadow(0 3px 8px rgba(255,215,0,0.4));
+      line-height: 1;
+    }
+
+    /* セットカード内の商品写真 */
+    .set-item-photo {
+      width: 100%;
+      height: 110px;
+      border-radius: 14px 14px 0 0;
+      flex-shrink: 0;
+      margin: -18px -10px 8px;
+      width: calc(100% + 20px);
+    }
+
+    .set-item-name {
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: white;
+      line-height: 1.3;
+      text-align: center;
+    }
+
+    .set-item-desc {
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.45);
+      text-align: center;
+      line-height: 1.4;
+    }
+
+    .set-item-price {
+      font-size: 0.75rem;
+      font-weight: 700;
+      background: linear-gradient(90deg, #FFD700, #FF8C42);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .set-decide-btn {
+      width: 100%;
+      padding: 16px;
+      border-radius: 50px;
+      background: linear-gradient(135deg, #FF6B9D, #A855F7);
+      color: white;
+      font-size: 1rem;
+      font-weight: 800;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 6px 24px rgba(255,107,157,0.45);
+      transition: all 0.25s;
+      font-family: inherit;
+      opacity: 0.4;
+      pointer-events: none;
+      margin-bottom: 20px;
+    }
+    .set-decide-btn.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .set-decide-btn.active:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 32px rgba(255,107,157,0.55);
+    }
+
+    /* Set result reveal */
+    .set-result-reveal {
+      display: none;
+      animation: fadeInScale 0.6s cubic-bezier(0.34,1.56,0.64,1) both;
+    }
+    .set-result-reveal.show { display: block; }
+    @keyframes fadeInScale {
+      from { opacity:0; transform: scale(0.7); }
+      to   { opacity:1; transform: scale(1); }
+    }
+    @keyframes slideInUp {
+      from { opacity:0; transform: translateY(30px); }
+      to   { opacity:1; transform: translateY(0); }
+    }
+
+    /* ===== No-Avatar Version ===== */
+    /* アバター無しの場合に表示するビジュアル要素 */
+    .no-avatar-visual {
+      z-index: 2;
+      position: relative;
+      margin-bottom: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+    }
+
+    /* 大きなギフト演出アイコン */
+    .no-avatar-gift-icon {
+      font-size: 7rem;
+      line-height: 1;
+      filter: drop-shadow(0 0 30px rgba(255,215,0,0.55)) drop-shadow(0 4px 20px rgba(255,107,157,0.4));
+      animation: noAvatarFloat 2.8s ease-in-out infinite;
+      position: relative;
+      z-index: 2;
+    }
+    @keyframes noAvatarFloat {
+      0%,100% { transform: translateY(0) scale(1); }
+      50%      { transform: translateY(-18px) scale(1.06); }
+    }
+
+    /* 光輪 */
+    .no-avatar-glow {
+      width: 220px; height: 220px;
+      border-radius: 50%;
+      background: radial-gradient(ellipse, rgba(255,107,157,0.28) 0%, rgba(168,85,247,0.18) 45%, transparent 70%);
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      animation: glowPulse 2.4s ease-in-out infinite;
+      z-index: 1;
+    }
+
+    /* 送り主バッジ（アバター無し版） */
+    .no-avatar-sender {
+      z-index: 2;
+      margin-top: 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,0.1);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: white;
+      padding: 8px 22px;
+      border-radius: 50px;
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+    .no-avatar-sender .sender-from-label {
+      font-size: 0.72rem;
+      color: rgba(255,255,255,0.5);
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .no-avatar-sender .sender-from-name {
+      background: linear-gradient(90deg, #FF6B9D, #A855F7);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 900;
+      font-size: 1rem;
+    }
+
+    /* メッセージカード（アバター無し版） */
+    .no-avatar-message-card {
+      z-index: 2;
+      width: 100%;
+      max-width: 400px;
+      background: rgba(255,255,255,0.09);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.16);
+      border-radius: 24px;
+      padding: 24px 22px;
+      margin: 18px 0 0;
+      animation: slideInUp 0.7s 0.3s ease both;
+      position: relative;
+    }
+    .no-avatar-message-card::before {
+      content: '💌';
+      position: absolute;
+      top: -16px; left: 50%;
+      transform: translateX(-50%);
+      font-size: 1.8rem;
+      filter: drop-shadow(0 2px 8px rgba(255,107,157,0.5));
+    }
+    .no-avatar-message-text {
+      font-size: 1.05rem;
+      line-height: 1.75;
+      color: rgba(255,255,255,0.92);
+      font-weight: 500;
+      text-align: center;
+      white-space: pre-wrap;
+    }
+
+    /* デフォルト非表示（JS で切り替え） */
+    .avatar-mode-section   { display: none; }
+    .no-avatar-mode-section { display: none; }
+    .avatar-mode-section.active    { display: block; }
+    .no-avatar-mode-section.active { display: flex; flex-direction: column; align-items: center; }
+
+    /* ===== Receive Responsive ===== */
+    @media (max-width: 767px) {
+      /* Main content layout */
+      .main-content { padding: 16px 14px 40px; }
+
+      /* Avatar canvas */
+      .avatar-performance canvas { width: 180px !important; height: 180px !important; }
+
+      /* Speech bubble */
+      .speech-bubble { max-width: 300px; padding: 14px 16px; }
+      .speech-text { font-size: 0.92rem; }
+
+      /* Gift reveal area */
+      .gift-reveal-area { max-width: 100%; }
+      .gift-reveal-card { padding: 20px 16px; border-radius: 20px; }
+      .gift-big-emoji { font-size: 4rem; }
+      .gift-reveal-name { font-size: 1.25rem; }
+
+      /* Set choice — 1カラム積み */
+      .set-cards-grid { grid-template-columns: 1fr; gap: 10px; }
+      .set-item-card { padding: 16px 14px; }
+      .set-item-emoji { font-size: 2.2rem; }
+      .set-item-name { font-size: 0.92rem; }
+
+      /* Reaction section */
+      .reaction-emojis { gap: 8px; }
+      .reaction-emoji-btn { font-size: 1.6rem; width: 44px; height: 44px; }
+    }
+
+    /* ===================================================
+       GIFT CARD SHARE BUTTON (reaction sent section)
+       =================================================== */
+    .share-card-btn {
+      display: inline-flex; align-items: center; gap: 9px;
+      background: linear-gradient(135deg, #FF6B9D, #A855F7);
+      color: white; border: none; cursor: pointer;
+      padding: 14px 32px; border-radius: 50px;
+      font-size: 0.95rem; font-weight: 800;
+      box-shadow: 0 6px 24px rgba(255,107,157,0.45);
+      transition: all 0.25s; font-family: inherit;
+      text-decoration: none;
+    }
+    .share-card-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 32px rgba(255,107,157,0.6); }
+
+    /* ===================================================
+       GIFT CARD POST MODAL — BABYMONSTER POSTER STYLE
+       =================================================== */
+    .gc-overlay {
+      display: none; position: fixed; inset: 0; z-index: 600;
+      background: rgba(4,0,12,0.92); backdrop-filter: blur(16px);
+      align-items: flex-end; justify-content: center;
+      padding: 0;
+    }
+    .gc-overlay.open { display: flex; }
+
+    /* Slide-up sheet */
+    .gc-modal {
+      background: #0e0020;
+      border: none;
+      border-radius: 28px 28px 0 0;
+      width: 100%;
+      max-width: 520px;
+      max-height: 96vh; overflow-y: auto;
+      padding: 0 0 env(safe-area-inset-bottom, 20px);
+      animation: gcSlideUp 0.45s cubic-bezier(0.22,1,0.36,1) both;
+      position: relative;
+      scrollbar-width: none;
+    }
+    .gc-modal::-webkit-scrollbar { display: none; }
+    @keyframes gcSlideUp {
+      from { opacity:0; transform: translateY(100%); }
+      to   { opacity:1; transform: translateY(0); }
+    }
+    @keyframes gcPop {
+      from { opacity:0; transform: scale(0.85) translateY(30px); }
+      to   { opacity:1; transform: scale(1) translateY(0); }
+    }
+
+    /* drag handle */
+    .gc-drag-handle {
+      width: 40px; height: 4px; border-radius: 2px;
+      background: rgba(255,255,255,0.2);
+      margin: 12px auto 0;
+    }
+
+    .gc-modal-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 20px 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .gc-modal-title {
+      font-size: 0.92rem; font-weight: 900; color: white;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .gc-modal-close {
+      background: rgba(255,255,255,0.08); border: none; cursor: pointer;
+      width: 30px; height: 30px; border-radius: 50%;
+      color: rgba(255,255,255,0.6); font-size: 0.9rem;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s;
+    }
+    .gc-modal-close:hover { background: rgba(255,255,255,0.16); color: white; }
+
+    /* ========================================
+       POSTER CARD  (BABYMONSTERスタイル)
+       ======================================== */
+    .gc-card-preview-wrap {
+      padding: 16px 20px 8px;
+      display: flex; flex-direction: column; align-items: center; gap: 14px;
+    }
+
+    /* Card outer wrapper — 9:14 縦型ポスター */
+    .gift-share-card {
+      width: 100%;
+      max-width: 300px;
+      aspect-ratio: 9/14;
+      border-radius: 20px;
+      position: relative; overflow: hidden;
+      box-shadow: 0 20px 80px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.06);
+      cursor: default;
+      background: #111;
+    }
+
+    /* Full-bleed canvas background */
+    .gsc-bg-canvas {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      z-index: 0; display: block;
+    }
+
+    /* Overlay: subtle darkening for text readability */
+    .gsc-overlay-darken {
+      position: absolute; inset: 0; z-index: 1;
+      background: linear-gradient(
+        180deg,
+        rgba(0,0,0,0.18) 0%,
+        rgba(0,0,0,0.05) 40%,
+        rgba(0,0,0,0.05) 55%,
+        rgba(0,0,0,0.70) 100%
+      );
+    }
+
+    /* ── Brand strip (top) ── */
+    .gsc-brand {
+      position: absolute; top: 0; left: 0; right: 0;
+      padding: 13px 16px 10px;
+      display: flex; align-items: center; justify-content: space-between;
+      z-index: 5;
+    }
+    .gsc-brand-name {
+      font-size: 0.65rem; font-weight: 900; letter-spacing: 0.22em;
+      color: rgba(255,255,255,0.92); text-transform: uppercase;
+    }
+    .gsc-brand-badge {
+      font-size: 0.62rem; font-weight: 800; letter-spacing: 0.1em;
+      color: rgba(255,255,255,0.6); text-transform: uppercase;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 20px; padding: 2px 9px;
+    }
+
+    /* ── Headline block (upper center) ── */
+    .gsc-headline {
+      position: absolute; top: 46px; left: 0; right: 0;
+      text-align: center; z-index: 5; padding: 0 16px;
+    }
+    .gsc-headline-eyebrow {
+      font-size: 0.58rem; color: rgba(255,255,255,0.6);
+      font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase;
+      margin-bottom: 3px;
+    }
+    .gsc-headline-main {
+      font-size: clamp(1.9rem, 9vw, 3rem); font-weight: 900;
+      color: white; line-height: 1.05;
+      letter-spacing: -0.01em;
+      word-break: break-all;
+      /* Drop-shadow for readability on photo bg */
+      filter: drop-shadow(0 2px 8px rgba(0,0,0,0.5));
+    }
+    .gsc-headline-sub {
+      font-size: 0.6rem; color: rgba(255,255,255,0.65);
+      font-weight: 700; letter-spacing: 0.14em; margin-top: 5px;
+    }
+
+    /* ── Center emoji (huge, fills photo zone) ── */
+    .gsc-emoji-wrap {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -48%);
+      z-index: 4; text-align: center;
+      pointer-events: none;
+    }
+    .gsc-big-emoji {
+      font-size: clamp(4.5rem, 22vw, 8rem);
+      display: block; line-height: 1;
+      filter: drop-shadow(0 12px 40px rgba(0,0,0,0.4));
+      animation: gcBounce 2.8s ease-in-out infinite;
+    }
+    @keyframes gcBounce {
+      0%,100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-8px) scale(1.04); }
+    }
+
+    /* ── Bottom info (JOOX-style) ── */
+    .gsc-bottom {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      padding: 0 16px 16px;
+      z-index: 5;
+    }
+    .gsc-date-line {
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 8px;
+    }
+    .gsc-date-year {
+      font-size: 0.52rem; font-weight: 900; color: rgba(255,255,255,0.5);
+      letter-spacing: 0.05em; line-height: 1; writing-mode: vertical-rl;
+      border-right: 1.5px solid rgba(255,255,255,0.25); padding-right: 5px;
+    }
+    .gsc-date-main {
+      font-size: clamp(1rem,5vw,1.3rem); font-weight: 900; color: white;
+      letter-spacing: 0.03em; line-height: 1;
+    }
+    .gsc-platform {
+      font-size: 0.62rem; font-weight: 800; color: rgba(255,255,255,0.65);
+      letter-spacing: 0.1em; text-transform: uppercase;
+    }
+    .gsc-gift-name {
+      font-size: 0.8rem; font-weight: 800; color: rgba(255,255,255,0.85);
+      letter-spacing: 0.05em; margin-top: 2px;
+    }
+    .gsc-from-line {
+      font-size: 0.65rem; color: rgba(255,255,255,0.55); font-weight: 600;
+      margin-top: 3px;
+    }
+    .gsc-from-line .gsc-sender { color: rgba(255,220,100,0.9); font-weight: 900; }
+
+    /* ── Theme chips ── */
+    .gc-theme-row {
+      display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;
+      width: 100%;
+    }
+    .gc-theme-chip {
+      width: 30px; height: 30px; border-radius: 50%; cursor: pointer;
+      border: 3px solid rgba(255,255,255,0.15); transition: all 0.22s;
+      flex-shrink: 0; position: relative;
+    }
+    .gc-theme-chip.active {
+      border-color: white;
+      transform: scale(1.18);
+      box-shadow: 0 0 0 2px rgba(255,255,255,0.4);
+    }
+    .gc-theme-chip .chip-label {
+      position: absolute; bottom: -18px; left: 50%; transform: translateX(-50%);
+      font-size: 0.55rem; white-space: nowrap; color: rgba(255,255,255,0.55);
+      font-weight: 700; pointer-events: none;
+    }
+    .gc-theme-chip.active .chip-label { color: white; }
+
+    /* ---- Post form ---- */
+    .gc-form {
+      padding: 6px 20px 0;
+      display: flex; flex-direction: column; gap: 11px;
+    }
+    .gc-section-label {
+      font-size: 0.7rem; font-weight: 800; color: rgba(255,255,255,0.45);
+      letter-spacing: 0.12em; text-transform: uppercase;
+      margin-bottom: -4px;
+    }
+    .gc-textarea {
+      background: rgba(255,255,255,0.06);
+      border: 1.5px solid rgba(255,255,255,0.12);
+      border-radius: 14px; padding: 12px 14px;
+      color: white; font-size: 0.88rem; font-family: inherit;
+      width: 100%; resize: none; min-height: 80px; outline: none;
+      transition: border-color 0.2s; box-sizing: border-box;
+      line-height: 1.6;
+    }
+    .gc-textarea:focus { border-color: rgba(168,85,247,0.7); }
+    .gc-textarea::placeholder { color: rgba(255,255,255,0.25); }
+
+    /* anonymous toggle row */
+    .gc-anon-row {
+      display: flex; align-items: center; gap: 10px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.09);
+      border-radius: 12px; padding: 10px 13px;
+    }
+    .gc-anon-icon { font-size: 1.15rem; }
+    .gc-anon-label {
+      flex: 1; font-size: 0.8rem; color: rgba(255,255,255,0.72);
+      font-weight: 700; cursor: pointer; line-height: 1.3;
+    }
+    .gc-anon-label span {
+      display: block; font-size: 0.66rem; font-weight: 500;
+      color: rgba(255,255,255,0.36); margin-top: 1px;
+    }
+
+    /* post button */
+    .gc-post-btn {
+      width: 100%; padding: 15px;
+      background: linear-gradient(135deg,#FF6B9D,#A855F7);
+      color: white; border: none; cursor: pointer;
+      border-radius: 50px; font-size: 0.95rem; font-weight: 800;
+      font-family: inherit; transition: all 0.25s;
+      box-shadow: 0 6px 20px rgba(168,85,247,0.4);
+      letter-spacing: 0.02em;
+    }
+    .gc-post-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(168,85,247,0.55); }
+    .gc-post-btn:disabled { opacity: 0.5; pointer-events: none; }
+
+    /* SNS share row */
+    .gc-share-row {
+      display: flex; gap: 8px; padding: 4px 20px 0;
+    }
+    .gc-share-label {
+      font-size: 0.66rem; font-weight: 800; color: rgba(255,255,255,0.4);
+      letter-spacing: 0.1em; text-transform: uppercase;
+      text-align: center; padding: 8px 0 0;
+    }
+    .gc-sns-btn {
+      flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
+      padding: 11px 6px; border-radius: 12px; border: none; cursor: pointer;
+      font-size: 0.78rem; font-weight: 800; font-family: inherit;
+      transition: all 0.2s;
+    }
+    .gc-sns-btn.x-btn {
+      background: #000; color: white;
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+    .gc-sns-btn.x-btn:hover { background: #1a1a1a; transform: translateY(-1px); }
+    .gc-sns-btn.ig-btn {
+      background: linear-gradient(135deg,#f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%);
+      color: white;
+    }
+    .gc-sns-btn.ig-btn:hover { opacity: 0.88; transform: translateY(-1px); }
+    .gc-sns-btn.copy-btn {
+      background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.8);
+      border: 1px solid rgba(255,255,255,0.15);
+    }
+    .gc-sns-btn.copy-btn:hover { background: rgba(255,255,255,0.14); }
+
+    /* post success */
+    .gc-success {
+      display: none; text-align: center; padding: 32px 24px;
+      animation: gcPop 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
+    }
+    .gc-success.show { display: block; }
+    .gc-success-icon { font-size: 3.5rem; margin-bottom: 12px; }
+    .gc-success-title { font-size: 1.1rem; font-weight: 900; color: white; margin-bottom: 6px; }
+    .gc-success-sub { color: rgba(255,255,255,0.5); font-size: 0.85rem; line-height: 1.6; }
+    .gc-success-actions {
+      margin-top: 18px;
+      display: flex; flex-direction: column; gap: 8px; align-items: center;
+    }
+
+    /* Separator */
+    .gc-divider {
+      border: none;
+      border-top: 1px solid rgba(255,255,255,0.07);
+      margin: 0 20px;
+    }
+
+    @media (max-width: 767px) {
+      .gc-modal { border-radius: 22px 22px 0 0; max-height: 96vh; }
+      .gc-card-preview-wrap { padding: 12px 14px 6px; }
+      .gift-share-card { max-width: 260px; }
+      .gc-form, .gc-share-row { padding-left: 14px; padding-right: 14px; }
+      .gc-divider { margin: 0 14px; }
+    }
+
+  </style>
+</head>
+<body>
+
+<!-- Flash overlay -->
+<div id="openOverlay"></div>
+
+<!-- Loading State -->
+<div id="loadingState">
+  <div class="load-spinner"></div>
+  <div style="color:rgba(255,255,255,0.6); font-weight:600;">ギフトを読み込み中...</div>
+</div>
+
+<!-- Error State -->
+<div id="errorState">
+  <div style="font-size:3rem; margin-bottom:16px;">😢</div>
+  <h2 style="color:white; margin-bottom:8px;">ギフトが見つかりませんでした</h2>
+  <p style="color:rgba(255,255,255,0.5); font-size:0.9rem; margin-bottom:24px;">URLが正しいかご確認ください</p>
+  <a href="index.html" class="btn btn-primary">トップへ戻る</a>
+</div>
+
+<!-- Intro Screen -->
+<div id="introScreen" style="display:none;">
+  <div class="star-field" id="starField"></div>
+  <div class="intro-logo">✦ OKURIATO ✦</div>
+  <div style="position:relative;">
+    <div class="sender-badge" id="introBadge">??? からギフトが届いています</div>
+    <div class="gift-box-container" onclick="openGift()">
+      <svg class="gift-box-svg" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Box body -->
+        <rect x="20" y="72" width="120" height="72" rx="10" fill="url(#boxGrad)"/>
+        <!-- Box lid -->
+        <rect x="12" y="54" width="136" height="26" rx="8" fill="url(#lidGrad)"/>
+        <!-- Ribbon vertical on body -->
+        <rect x="72" y="72" width="16" height="72" fill="url(#ribbonGrad)" opacity="0.9"/>
+        <!-- Ribbon horizontal on lid -->
+        <rect x="12" y="63" width="136" height="8" fill="url(#ribbonGrad)" opacity="0.9"/>
+        <!-- Bow top -->
+        <ellipse cx="80" cy="48" rx="20" ry="12" fill="url(#bowGrad)" transform="rotate(-25 80 48)"/>
+        <ellipse cx="80" cy="48" rx="20" ry="12" fill="url(#bowGrad)" transform="rotate(25 80 48)"/>
+        <circle cx="80" cy="50" r="9" fill="#FF3B7A"/>
+        <!-- Stars -->
+        <text x="32" y="116" font-size="18" opacity="0.7">⭐</text>
+        <text x="106" y="108" font-size="14" opacity="0.6">✨</text>
+        <text x="50" y="102" font-size="12" opacity="0.5">💫</text>
+        <!-- Gradients -->
+        <defs>
+          <linearGradient id="boxGrad" x1="20" y1="72" x2="140" y2="144" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#FF6B9D"/>
+            <stop offset="100%" stop-color="#CC3D7A"/>
+          </linearGradient>
+          <linearGradient id="lidGrad" x1="12" y1="54" x2="148" y2="80" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#FF8FB0"/>
+            <stop offset="100%" stop-color="#E05590"/>
+          </linearGradient>
+          <linearGradient id="ribbonGrad" x1="0" y1="0" x2="1" y2="1" gradientUnits="objectBoundingBox">
+            <stop offset="0%" stop-color="#FFD700"/>
+            <stop offset="100%" stop-color="#FF8C42"/>
+          </linearGradient>
+          <linearGradient id="bowGrad" x1="60" y1="36" x2="100" y2="60" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#FF6B9D"/>
+            <stop offset="100%" stop-color="#A855F7"/>
+          </linearGradient>
+        </defs>
+      </svg>
+    </div>
+  </div>
+  <div class="tap-hint">タップして開ける 🎁</div>
+</div>
+
+<!-- Main Content -->
+<div id="mainContent">
+  <div class="gift-stage">
+    <div class="spotlight"></div>
+
+    <!-- Decorations -->
+    <div class="float-decoration" style="top:10%; left:10%; font-size:1.4rem; animation-duration:3s;">💖</div>
+    <div class="float-decoration" style="top:15%; right:12%; font-size:1.2rem; animation-duration:2.5s; animation-delay:0.5s;">⭐</div>
+    <div class="float-decoration" style="top:8%; left:35%; font-size:1rem; animation-duration:4s; animation-delay:1s;">✨</div>
+    <div class="float-decoration" style="top:20%; right:25%; font-size:1.6rem; animation-duration:3.5s; animation-delay:0.3s;">🌸</div>
+
+    <!-- To / From (共通) -->
+    <div class="to-from">
+      <div class="to-text">✦ GIFT FOR YOU ✦</div>
+      <div class="from-name">
+        <span id="recipientDisplayName" class="highlight-name">あなた</span>さんへ
+      </div>
+      <div style="color:rgba(255,255,255,0.4); font-size:0.8rem; margin-top:4px;">
+        from <span id="senderDisplayName" style="color:rgba(255,255,255,0.7); font-weight:700;">?</span>
+      </div>
+    </div>
+
+    <!-- ===== アバター有り版 ===== -->
+    <div class="avatar-mode-section" id="avatarModeSection">
+      <!-- Avatar Performance -->
+      <div class="avatar-performance">
+        <div class="avatar-glow"></div>
+        <canvas id="mainAvatarCanvas" width="240" height="240"></canvas>
+      </div>
+      <div class="avatar-name-bubble" id="avatarNameBubble">🌟 アバター</div>
+
+      <!-- Speech Bubble -->
+      <div class="speech-bubble" id="speechBubble">
+        <div class="speech-text" id="speechText">読み込み中...</div>
+      </div>
+    </div>
+
+    <!-- ===== アバター無し版 ===== -->
+    <div class="no-avatar-mode-section" id="noAvatarModeSection">
+      <!-- 大きなギフトアイコン演出 -->
+      <div class="no-avatar-visual">
+        <div class="no-avatar-glow"></div>
+        <div class="no-avatar-gift-icon" id="noAvatarGiftIcon">🎁</div>
+      </div>
+
+      <!-- 送り主バッジ -->
+      <div class="no-avatar-sender">
+        <div>
+          <div class="sender-from-label">FROM</div>
+          <div class="sender-from-name" id="noAvatarSenderName">?</div>
+        </div>
+      </div>
+
+      <!-- メッセージカード -->
+      <div class="no-avatar-message-card">
+        <div class="no-avatar-message-text" id="noAvatarMessageText">読み込み中...</div>
+      </div>
+    </div>
+
+    <!-- Gift Reveal (共通) -->
+    <div class="gift-reveal-area">
+      <div id="giftRevealContent">
+        <!-- JSで動的にレンダリング -->
+      </div>
+
+      <!-- Reaction Section (共通) -->
+      <div class="reaction-section">
+        <div class="reaction-title">💬 SEND YOUR REACTION</div>
+        <div class="reaction-emojis" id="reactionEmojis">
+          <button class="reaction-emoji-btn" data-emoji="🥰" onclick="selectReactionEmoji('🥰',this)">🥰</button>
+          <button class="reaction-emoji-btn" data-emoji="😭" onclick="selectReactionEmoji('😭',this)">😭</button>
+          <button class="reaction-emoji-btn" data-emoji="🙏" onclick="selectReactionEmoji('🙏',this)">🙏</button>
+          <button class="reaction-emoji-btn" data-emoji="😍" onclick="selectReactionEmoji('😍',this)">😍</button>
+          <button class="reaction-emoji-btn" data-emoji="🎉" onclick="selectReactionEmoji('🎉',this)">🎉</button>
+          <button class="reaction-emoji-btn" data-emoji="💖" onclick="selectReactionEmoji('💖',this)">💖</button>
+        </div>
+
+        <div id="reactionForm">
+          <textarea
+            class="reaction-msg-area"
+            id="reactionMsg"
+            placeholder="メッセージを書いてね... (任意)"
+            maxlength="200"
+            rows="3"
+          ></textarea>
+          <button class="react-send-btn" id="reactSendBtn" onclick="sendReaction()">
+            💌 リアクションを送る
+          </button>
+        </div>
+
+        <div class="reaction-sent" id="reactionSentMsg">
+          <div class="reaction-sent-icon" id="sentReactionIcon">💖</div>
+          <div class="reaction-sent-title">リアクションを送りました！</div>
+          <div class="reaction-sent-sub">送り手に届きます✨</div>
+          <div style="margin-top:18px; display:flex; flex-direction:column; gap:10px; align-items:center;">
+            <button class="share-card-btn" onclick="openGiftCardModal()">
+              <i class="fas fa-share-alt"></i> ギフトカードを作って投稿する
+            </button>
+            <a href="gift.html" style="color:rgba(255,255,255,0.55); font-size:0.8rem; text-decoration:none;">
+              <i class="fas fa-gift"></i> ギフトを贈る →
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- ===== GIFT CARD POST MODAL — BABYMONSTER POSTER STYLE ===== -->
+<div class="gc-overlay" id="gcOverlay" onclick="gcOverlayClick(event)">
+  <div class="gc-modal" id="gcModal">
+
+    <!-- Drag handle -->
+    <div class="gc-drag-handle"></div>
+
+    <!-- Header -->
+    <div class="gc-modal-head">
+      <div class="gc-modal-title">🎴 ギフトカードを作って投稿する</div>
+      <button class="gc-modal-close" onclick="closeGiftCardModal()"><i class="fas fa-times"></i></button>
+    </div>
+
+    <!-- ======== POSTER CARD PREVIEW ======== -->
+    <div class="gc-card-preview-wrap">
+
+      <!-- 9:14 縦型ポスターカード -->
+      <div class="gift-share-card" id="giftShareCard">
+        <!-- Full-bleed Canvas background (photo + gradient) -->
+        <canvas class="gsc-bg-canvas" id="gscBgCanvas"></canvas>
+        <!-- Overlay darkening -->
+        <div class="gsc-overlay-darken"></div>
+
+        <!-- Brand strip (top) -->
+        <div class="gsc-brand">
+          <span class="gsc-brand-name">OKURIATO</span>
+          <span class="gsc-brand-badge" id="gscBrandBadge">GIFT</span>
+        </div>
+
+        <!-- Headline block -->
+        <div class="gsc-headline">
+          <div class="gsc-headline-eyebrow" id="gscEyebrow">贈り物が届きました</div>
+          <div class="gsc-headline-main" id="gscHeadlineMain">GIFT</div>
+          <div class="gsc-headline-sub" id="gscHeadlineSub">✦ もらいました ✦</div>
+        </div>
+
+        <!-- Giant center emoji -->
+        <div class="gsc-emoji-wrap">
+          <span class="gsc-big-emoji" id="gscBigEmoji">🎁</span>
+        </div>
+
+        <!-- Bottom info (JOOX-style date + platform) -->
+        <div class="gsc-bottom">
+          <div class="gsc-date-line">
+            <div class="gsc-date-year" id="gscDateYear">2026</div>
+            <div>
+              <div class="gsc-date-main" id="gscDateMain">05/22</div>
+              <div class="gsc-platform">OKURIATO</div>
+            </div>
+          </div>
+          <div class="gsc-gift-name" id="gscGiftName">ギフト名</div>
+          <div class="gsc-from-line">
+            from <span class="gsc-sender" id="gscSender">?</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Theme chip selector -->
+      <div class="gc-theme-row" id="gcThemeRow">
+        <!-- JS render -->
+      </div>
+    </div>
+
+    <hr class="gc-divider">
+
+    <!-- Post form -->
+    <div class="gc-form" id="gcFormArea">
+      <div class="gc-section-label">コメント</div>
+      <textarea class="gc-textarea" id="gcComment"
+        placeholder="ひとことコメントを添えよう...（例：めちゃ嬉しかった🥹）"
+        maxlength="140" rows="3"></textarea>
+
+      <!-- Anonymous toggle -->
+      <div class="gc-anon-row">
+        <span class="gc-anon-icon">🫥</span>
+        <label class="gc-anon-label" for="gcAnonToggle">
+          匿名で投稿する
+          <span>オンにすると名前が「匿名さん」になります</span>
+        </label>
+        <label class="jt-switch">
+          <input type="checkbox" id="gcAnonToggle" onchange="updateCardPreview()">
+          <span class="jt-track"></span>
+        </label>
+      </div>
+
+      <!-- Post button -->
+      <button class="gc-post-btn" id="gcPostBtn" onclick="postGiftCard()">
+        <i class="fas fa-paper-plane"></i> コミュニティに投稿する
+      </button>
+    </div>
+
+    <!-- SNS share row -->
+    <p class="gc-share-label">シェアする</p>
+    <div class="gc-share-row">
+      <button class="gc-sns-btn x-btn" onclick="shareToX()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="white"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.259 5.632L18.244 2.25zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+        X でシェア
+      </button>
+      <button class="gc-sns-btn ig-btn" onclick="shareToInstagram()">
+        <i class="fab fa-instagram"></i> Insta
+      </button>
+      <button class="gc-sns-btn copy-btn" onclick="copyShareUrl()">
+        <i class="fas fa-link"></i> URL
+      </button>
+    </div>
+
+    <!-- Success state -->
+    <div class="gc-success" id="gcSuccess">
+      <div class="gc-success-icon">🎉</div>
+      <div class="gc-success-title">投稿しました！</div>
+      <div class="gc-success-sub">みんなのギフト体験ページに掲載されます✨</div>
+      <div class="gc-success-actions">
+        <a href="community.html" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#A855F7,#FF6B9D);color:white;font-weight:800;text-decoration:none;padding:13px 28px;border-radius:50px;font-size:0.88rem;">
+          <i class="fas fa-users"></i> コミュニティで見る
+        </a>
+        <button onclick="closeGiftCardModal()" style="background:none;border:none;color:rgba(255,255,255,0.45);font-size:0.8rem;cursor:pointer;padding:8px;">閉じる</button>
+      </div>
+    </div>
+
+    <!-- bottom safe area padding -->
+    <div style="height: 12px;"></div>
+  </div>
+</div>
+
+<script>
+// ===== Vercel統合設定 =====
+const VERCEL_URL = 'https://line-e.vercel.app';
+const giftParam = new URLSearchParams(window.location.search).get('gift');
+
+// ===== State =====
+let orderData = null;
+let vercelGiftId = giftParam || null;
+let avatarState = {};
+let selectedReactionEmoji = '';
+let animFrame = null;
+let motionTime = 0;
+
+// ===== Get Order ID from URL =====
+// LINE内部ブラウザ等でクエリパラメータが消える対策:
+// 1) URLSearchParams で取得を試みる
+// 2) 失敗した場合は href 全体から "id=xxxx" を正規表現で抽出する
+function extractOrderId() {
+  // Step 1: 通常のクエリパラメータ
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const v = params.get('id');
+    if (v) return v;
+  } catch(e) {}
+
+  // Step 2: location.search が空でも href にクエリが残っている場合
+  try {
+    const m = window.location.href.match(/[?&]id=([^&&#]+)/);
+    if (m && m[1]) return decodeURIComponent(m[1]);
+  } catch(e) {}
+
+  // Step 3: hash に混入しているケース (#?id=xxx / #id=xxx)
+  try {
+    const m = window.location.hash.match(/[?&]id=([^&&#]+)/);
+    if (m && m[1]) return decodeURIComponent(m[1]);
+  } catch(e) {}
+
+  return null;
+}
+const orderId = extractOrderId();
+
+// demo パラメータも同様に fallback 取得
+function extractParam(key) {
+  try {
+    const v = new URLSearchParams(window.location.search).get(key);
+    if (v !== null) return v;
+  } catch(e) {}
+  try {
+    const m = window.location.href.match(new RegExp('[?&]' + key + '=([^&&#]*)'));
+    if (m) return decodeURIComponent(m[1]);
+  } catch(e) {}
+  try {
+    const m = window.location.hash.match(new RegExp('[?&]' + key + '=([^&&#]*)'));
+    if (m) return decodeURIComponent(m[1]);
+  } catch(e) {}
+  return null;
+}
+const demoParam   = extractParam('demo');     // '1'=アバター有り, '2'=アバター無し
+const isDemoMode  = demoParam === '1' || demoParam === '2';
+
+// ===== Load Order =====
+async function loadOrder() {
+  // demo=1 の場合はデモデータを直接表示
+  if (isDemoMode) { loadDemoOrder(); return; }
+
+  // ?gift=<giftId> がある場合はVercel APIから取得
+  if (vercelGiftId) {
+    try {
+      const res = await fetch(VERCEL_URL + '/gift-data?id=' + encodeURIComponent(vercelGiftId));
+      const d = await res.json();
+      if (d.ok && d.gift) {
+        const g = d.gift;
+        const items = Array.isArray(g.items) ? g.items : [];
+        orderData = {
+          id: g.gift_id,
+          sender_name: g.sender_name || '',
+          recipient_name: '',
+          gift_name: items.map(i => i.name).join(' / '),
+          gift_emoji: (items[0] && items[0].emoji) || '🎁',
+          gift_price: items.length > 0 ? Math.max(...items.map(i => Number(i.price) || 0)) : 0,
+          gift_brand: (items[0] && items[0].brand) || '',
+          gift_desc: (items[0] && items[0].comment) || '',
+          gift_is_set: items.length > 1 ? 1 : 0,
+          gift_set_items: JSON.stringify(items.map(i => ({
+            id: i.id, name: i.name, emoji: i.emoji || '🎁',
+            price: Number(i.price) || 0, brand: i.brand || '', desc: i.comment || ''
+          }))),
+          cart_mode: items.length > 1 ? 'choice' : 'full',
+          avatar_data: '{}',
+          expression: 'happy', motion: 'bounce',
+          message: g.occasion_text || '',
+          status: g.status,
+          _vercel: true,
+        };
+        initPage();
+        return;
+      }
+    } catch(e) { console.error('Vercel gift-data error:', e); }
+    showError(); return;
+  }
+
+  if (!orderId) { showError(); return; }
+
+  // Try to load from DB
+  try {
+    const res = await fetch(`tables/orders?search=${orderId}`);
+    const data = await res.json();
+
+    if (data.data && data.data.length > 0) {
+      orderData = data.data.find(o => o.id === orderId);
+    }
+
+    // If not found in DB, check sessionStorage (for demo)
+    if (!orderData) {
+      const lastId = sessionStorage.getItem('lastOrderId');
+      if (lastId && lastId === orderId) {
+        // Reconstruct from sessionStorage
+        const gift = JSON.parse(sessionStorage.getItem('selectedGift') || '{}');
+        const av = JSON.parse(sessionStorage.getItem('avatarData') || '{}');
+        orderData = {
+          id: orderId,
+          sender_name: sessionStorage.getItem('senderName') || 'だれか',
+          recipient_name: sessionStorage.getItem('recipientName') || 'あなた',
+          gift_name: gift.name || 'ギフト',
+          gift_emoji: gift.emoji || '🎁',
+          gift_price: gift.price || 0,
+          gift_is_set: gift.isSet ? 1 : 0,
+          gift_set_items: gift.isSet ? JSON.stringify(gift.setItems || []) : '',
+          gift_img: gift.img || '',
+          gift_img_row: gift.imgRow || 0,
+          gift_img_col: gift.imgCol || 0,
+          gift_brand: gift.brand || '',
+          gift_desc: gift.desc || '',
+          avatar_data: JSON.stringify(av),
+          expression: av.expression || 'happy',
+          motion: av.motion || 'bounce',
+          message: 'テストメッセージです✨',
+          status: 'pending'
+        };
+      }
+    }
+
+    if (!orderData) { showError(); return; }
+
+    // Mark as opened
+    try {
+      await fetch(`tables/orders/${orderData.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'opened', opened_at: Date.now() })
+      });
+    } catch (e) {}
+
+    showIntro();
+  } catch (e) {
+    // Fallback to sessionStorage
+    const lastId = sessionStorage.getItem('lastOrderId');
+    if (lastId === orderId) {
+      const gift = JSON.parse(sessionStorage.getItem('selectedGift') || '{}');
+      const av = JSON.parse(sessionStorage.getItem('avatarData') || '{}');
+      orderData = {
+        id: orderId,
+        sender_name: sessionStorage.getItem('senderName') || 'だれか',
+        recipient_name: sessionStorage.getItem('recipientName') || 'あなた',
+        gift_name: gift.name || 'ギフト',
+        gift_emoji: gift.emoji || '🎁',
+        gift_price: gift.price || 0,
+        gift_is_set: gift.isSet ? 1 : 0,
+        gift_set_items: gift.isSet ? JSON.stringify(gift.setItems || []) : '',
+        gift_img: gift.img || '',
+        gift_img_row: gift.imgRow || 0,
+        gift_img_col: gift.imgCol || 0,
+        gift_brand: gift.brand || '',
+        gift_desc: gift.desc || '',
+        avatar_data: JSON.stringify(av),
+        expression: av.expression || 'happy',
+        motion: av.motion || 'bounce',
+        message: sessionStorage.getItem('demoMessage') || 'ありがとう！いつも笑顔でいてくれてありがとう💕',
+        status: 'pending'
+      };
+      showIntro();
+    } else {
+      showError();
+    }
+  }
+}
+
+// ===== Demo Order (demo=1 / demo=2 アクセス時) =====
+function loadDemoOrder() {
+  if (demoParam === '2') {
+    // ── アバター無しデモ ──────────────────────────────────
+    orderData = {
+      id: 'demo-no-avatar',
+      sender_name: 'たろう',
+      recipient_name: 'あなた',
+      gift_name: 'スターバックスギフトカード',
+      gift_emoji: '☕',
+      gift_price: 2000,
+      gift_is_set: 0,
+      gift_set_items: '',
+      avatar_data: '{}',           // 空 → アバター無しモードへ
+      expression: '',
+      motion: '',
+      message: 'いつもお疲れ様！\nコーヒーでほっと一息ついてね☕✨',
+      status: 'demo'
+    };
+  } else {
+    // ── アバター有りデモ（demo=1）────────────────────────
+    orderData = {
+      id: 'demo',
+      sender_name: 'まこと',
+      recipient_name: 'あなた',
+      gift_name: 'アロマキャンドルセット',
+      gift_emoji: '🌸',
+      gift_price: 2800,
+      gift_is_set: 0,
+      gift_set_items: '',
+      avatar_data: JSON.stringify({
+        faceColor:'#FFDABB', hairStyle:'long', hairColor:'#3D2B1F',
+        eyeStyle:'sparkle', accessory:'ribbon', outfit:'dress',
+        expression:'cheer', motion:'bounce', name:'コトネ'
+      }),
+      expression: 'cheer',
+      motion: 'bounce',
+      message: 'いつも応援してるよ！💪\nこれからも一緒に頑張ろうね🎁',
+      status: 'demo'
+    };
+  }
+  showIntro();
+}
+
+// ===== Show Intro =====
+function showIntro() {
+  document.getElementById('loadingState').style.display = 'none';
+  const intro = document.getElementById('introScreen');
+  intro.style.display = 'flex';
+
+  // Stars
+  initStars();
+
+  // Badge
+  document.getElementById('introBadge').textContent =
+    (orderData.sender_name || '???') + ' からギフトが届いています';
+}
+
+function initStars() {
+  const sf = document.getElementById('starField');
+  for (let i = 0; i < 80; i++) {
+    const s = document.createElement('div');
+    s.className = 'star';
+    const size = Math.random() * 3 + 1;
+    s.style.cssText = `
+      left: ${Math.random() * 100}%;
+      top: ${Math.random() * 100}%;
+      width: ${size}px;
+      height: ${size}px;
+      animation-duration: ${1 + Math.random() * 3}s;
+      animation-delay: ${Math.random() * 3}s;
+    `;
+    sf.appendChild(s);
+  }
+}
+
+// ===== Open Gift =====
+function openGift() {
+  // Flash effect
+  const overlay = document.getElementById('openOverlay');
+  overlay.classList.add('flash');
+  setTimeout(() => overlay.classList.remove('flash'), 600);
+
+  // Confetti burst
+  launchConfetti();
+
+  // Transition
+  const intro = document.getElementById('introScreen');
+  intro.classList.add('fade-out');
+  setTimeout(() => {
+    intro.style.display = 'none';
+    showMainContent();
+  }, 800);
+}
+
+// ===== Show Main Content =====
+function showMainContent() {
+  const main = document.getElementById('mainContent');
+  main.classList.add('visible');
+
+  // Parse avatar data
+  let rawAvatarData = {};
+  try {
+    rawAvatarData = JSON.parse(orderData.avatar_data || '{}');
+  } catch (e) {
+    rawAvatarData = {};
+  }
+
+  // アバターデータが実質的に存在するか判定
+  // faceColor, hairStyle, outfit などのいずれかがあれば「アバター有り」
+  const hasAvatar = !!(
+    rawAvatarData.faceColor || rawAvatarData.hairStyle ||
+    rawAvatarData.outfit    || rawAvatarData.expression ||
+    rawAvatarData.face_color || rawAvatarData.hair_style
+  );
+
+  // 共通テキスト
+  document.getElementById('recipientDisplayName').textContent = orderData.recipient_name || 'あなた';
+  document.getElementById('senderDisplayName').textContent    = orderData.sender_name || '?';
+
+  // Render gift reveal area
+  const isSet = !!(orderData.gift_is_set && orderData.gift_is_set != '0');
+  if (isSet) {
+    renderSetChoice();
+  } else {
+    renderSingleGift();
+  }
+
+  if (hasAvatar) {
+    // ===== アバター有りモード =====
+    document.getElementById('avatarModeSection').classList.add('active');
+    document.getElementById('noAvatarModeSection').classList.remove('active');
+
+    avatarState = rawAvatarData;
+    avatarState.faceColor  = avatarState.faceColor  || avatarState.face_color  || '#FFDABB';
+    avatarState.hairStyle  = avatarState.hairStyle  || avatarState.hair_style  || 'short';
+    avatarState.hairColor  = avatarState.hairColor  || avatarState.hair_color  || '#3D2B1F';
+    avatarState.eyeStyle   = avatarState.eyeStyle   || avatarState.eye_style   || 'normal';
+    avatarState.accessory  = avatarState.accessory  || 'none';
+    avatarState.outfit     = avatarState.outfit     || 'casual';
+    avatarState.expression = orderData.expression   || avatarState.expression  || 'happy';
+    avatarState.motion     = orderData.motion       || avatarState.motion      || 'bounce';
+
+    document.getElementById('speechText').textContent      = orderData.message || '...';
+    document.getElementById('avatarNameBubble').textContent = '🌟 ' + (avatarState.name || 'アバター');
+
+    // Start avatar animation
+    startAvatarAnimation();
+
+  } else {
+    // ===== アバター無しモード =====
+    document.getElementById('avatarModeSection').classList.remove('active');
+    document.getElementById('noAvatarModeSection').classList.add('active');
+
+    // ギフト絵文字を大きく表示
+    const giftEmoji = orderData.gift_emoji || '🎁';
+    document.getElementById('noAvatarGiftIcon').textContent  = giftEmoji;
+    document.getElementById('noAvatarSenderName').textContent = orderData.sender_name || '?';
+    document.getElementById('noAvatarMessageText').textContent = orderData.message   || '...';
+
+    // スポットライトのカラーをゴールド系に
+    const spotlight = document.querySelector('.spotlight');
+    if (spotlight) {
+      spotlight.style.background = 'radial-gradient(ellipse at top, rgba(255,215,0,0.2) 0%, rgba(255,107,157,0.15) 40%, transparent 70%)';
+    }
+  }
+
+  // Continuous confetti
+  setTimeout(() => launchConfetti(20), 800);
+  setTimeout(() => launchConfetti(15), 1600);
+}
+
+// ============================================================
+// 商品写真クロップ — gift.html と同一ロジック
+// ============================================================
+const IMG_META = {
+  1: { w:1024, h:440, photoTop:13, photoBottom:289,
+       cols:[ {x1:0, x2:340}, {x1:397, x2:672}, {x1:729, x2:1023} ] },
+  2: { w:1024, h:470, photoTop:21, photoBottom:311,
+       cols:[ {x1:0, x2:340}, {x1:342, x2:682}, {x1:684, x2:1023} ] },
+  3: { w:1024, h:457, photoTop:17, photoBottom:307,
+       cols:[ {x1:0, x2:316}, {x1:397, x2:657}, {x1:715, x2:1023} ] },
+  4: { w:1024, h:483, photoTop:88, photoBottom:307,
+       cols:[ {x1:0, x2:340}, {x1:342, x2:682}, {x1:684, x2:1023} ] },
+};
+
+function getImgBgStyle(img, imgRow, imgCol, cardH) {
+  if (!img || !imgRow || !imgCol) return '';
+  const meta = IMG_META[imgRow];
+  if (!meta) return '';
+  const col = meta.cols[imgCol - 1];
+  if (!col) return '';
+  const photoH = meta.photoBottom - meta.photoTop;
+  const scale  = cardH / photoH;
+  const bgW    = Math.round(meta.w * scale);
+  const bgH    = Math.round(meta.h * scale);
+  const cropX  = Math.round(col.x1 * scale);
+  const cropY  = Math.round(meta.photoTop * scale);
+  return `background-image:url('${img}');background-size:${bgW}px ${bgH}px;background-position:-${cropX}px -${cropY}px;background-repeat:no-repeat;`;
+}
+
+// ===== Single Gift Render =====
+function renderSingleGift() {
+  const container = document.getElementById('giftRevealContent');
+
+  // 商品写真が使えるか判定
+  const img    = orderData.gift_img    || '';
+  const imgRow = parseInt(orderData.gift_img_row) || 0;
+  const imgCol = parseInt(orderData.gift_img_col) || 0;
+  const PHOTO_H = 200; // カード内の写真表示高さ(px)
+  const bgStyle = getImgBgStyle(img, imgRow, imgCol, PHOTO_H);
+
+  const photoEl = bgStyle
+    ? `<div class="rv-gift-photo" style="${bgStyle}"></div>`
+    : `<span class="gift-big-emoji">${orderData.gift_emoji || '🎁'}</span>`;
+
+  const brandEl = orderData.gift_brand
+    ? `<div class="rv-gift-brand">${orderData.gift_brand}</div>`
+    : '';
+  const descEl  = orderData.gift_desc
+    ? `<div class="rv-gift-desc">${orderData.gift_desc}</div>`
+    : '';
+
+  container.innerHTML = `
+    <div class="gift-reveal-card" style="animation: fadeInScale 0.7s cubic-bezier(0.34,1.56,0.64,1) both; padding: ${bgStyle ? '0' : '28px 24px'}; overflow: hidden;">
+      ${photoEl}
+      <div style="padding: ${bgStyle ? '20px 24px 24px' : '0'};">
+        ${brandEl}
+        <div class="gift-reveal-name">${orderData.gift_name || 'ギフト'}</div>
+        ${descEl}
+        <div class="gift-reveal-price">¥${(orderData.gift_price || 0).toLocaleString()}</div>
+      </div>
+    </div>
+  `;
+}
+
+// ===== Set Gift Choice Render =====
+let selectedSetIndex = -1;
+
+function renderSetChoice() {
+  let setItems = [];
+  try {
+    setItems = JSON.parse(orderData.gift_set_items || '[]');
+  } catch(e) { setItems = []; }
+
+  // Fallback — use gift_emoji characters if no set_items
+  if (!setItems.length) {
+    renderSingleGift(); return;
+  }
+
+  const price = orderData.gift_price || 0;
+  const container = document.getElementById('giftRevealContent');
+
+  const SET_PHOTO_H = 110; // セットカード内の写真高さ
+
+  const cardsHtml = setItems.map((item, i) => {
+    const bgStyle = getImgBgStyle(item.img || '', parseInt(item.imgRow)||0, parseInt(item.imgCol)||0, SET_PHOTO_H);
+    const photoEl = bgStyle
+      ? `<div class="set-item-photo" style="${bgStyle}"></div>`
+      : `<span class="set-item-emoji">${item.emoji || '🎁'}</span>`;
+    return `
+    <div class="set-item-card" id="setCard${i}" onclick="selectSetItem(${i})">
+      <div class="set-check-badge">✓</div>
+      ${photoEl}
+      <div class="set-item-name">${item.name || 'ギフト' + (i+1)}</div>
+      ${item.desc ? `<div class="set-item-desc">${item.desc}</div>` : ''}
+      <div class="set-item-price">¥${(item.price || price).toLocaleString()}</div>
+    </div>`;
+  }).join('');
+
+  container.innerHTML = `
+    <div class="set-choice-area" style="animation: slideInUp 0.7s 0.2s ease both; opacity:0; animation-fill-mode:both;">
+      <div class="set-choice-label">∴ 3択セットギフト</div>
+      <div class="set-choice-title">🎁 3つのギフトから<br>1つ選んでね🥰</div>
+      <div class="set-cards-grid">${cardsHtml}</div>
+      <button class="set-decide-btn" id="setDecideBtn" onclick="decideSetChoice()">
+        ✨ これにする！
+      </button>
+    </div>
+    <div class="set-result-reveal" id="setResultReveal">
+      <div class="gift-reveal-card" id="chosenCard" style="padding:0; overflow:hidden;">
+        <div id="chosenPhotoWrap"></div>
+        <div style="padding:20px 24px 24px;">
+          <div id="chosenBrand" class="rv-gift-brand" style="display:none;"></div>
+          <div class="gift-reveal-name" id="chosenName">ギフト</div>
+          <div class="gift-reveal-price" id="chosenPrice">¥0</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function selectSetItem(index) {
+  selectedSetIndex = index;
+  const cards = document.querySelectorAll('.set-item-card');
+  cards.forEach((card, i) => {
+    card.classList.remove('selected', 'not-selected');
+    if (i === index) card.classList.add('selected');
+    else card.classList.add('not-selected');
+  });
+  const btn = document.getElementById('setDecideBtn');
+  if (btn) btn.classList.add('active');
+}
+
+function decideSetChoice() {
+  if (selectedSetIndex < 0) return;
+
+  let setItems = [];
+  try { setItems = JSON.parse(orderData.gift_set_items || '[]'); } catch(e) {}
+  const chosen = setItems[selectedSetIndex];
+  if (!chosen) return;
+
+  // Hide choice area with animation
+  const choiceArea = document.querySelector('.set-choice-area');
+  if (choiceArea) {
+    choiceArea.style.transition = 'opacity 0.4s, transform 0.4s';
+    choiceArea.style.opacity = '0';
+    choiceArea.style.transform = 'scale(0.9)';
+  }
+
+  setTimeout(() => {
+    // Hide choice, show result
+    if (choiceArea) choiceArea.style.display = 'none';
+
+    const resultEl = document.getElementById('setResultReveal');
+
+    // 決定アイテムの写真表示
+    const CHOSEN_PHOTO_H = 200;
+    const chosenBgStyle = getImgBgStyle(
+      chosen.img    || '',
+      parseInt(chosen.imgRow) || 0,
+      parseInt(chosen.imgCol) || 0,
+      CHOSEN_PHOTO_H
+    );
+    const photoWrap = document.getElementById('chosenPhotoWrap');
+    if (chosenBgStyle) {
+      photoWrap.innerHTML = `<div class="rv-gift-photo" style="${chosenBgStyle}"></div>`;
+    } else {
+      photoWrap.innerHTML = `<span class="gift-big-emoji" style="display:block;padding-top:24px;">${chosen.emoji || '🎁'}</span>`;
+    }
+    const brandEl = document.getElementById('chosenBrand');
+    if (chosen.brand) { brandEl.textContent = chosen.brand; brandEl.style.display = 'block'; }
+    document.getElementById('chosenName').textContent  = chosen.name  || 'ギフト';
+    document.getElementById('chosenPrice').textContent = '¥' + (chosen.price || orderData.gift_price || 0).toLocaleString();
+    resultEl.classList.add('show');
+
+    // Vercel APIに選択を保存
+    if (vercelGiftId && chosen.id) {
+      fetch(VERCEL_URL + '/gift-select', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ giftId: vercelGiftId, selectedItemId: chosen.id })
+      }).catch(() => {});
+    }
+
+    // Save chosen item to order
+    try {
+      fetch(`tables/orders/${orderData.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chosen_item_name: chosen.name,
+          chosen_item_emoji: chosen.emoji,
+          chosen_item_index: selectedSetIndex,
+          status: 'chosen'
+        })
+      });
+    } catch(e) {}
+
+    launchConfetti(40);
+    showToast('🎉 ' + (chosen.name || 'ギフト') + 'を選びました！');
+  }, 450);
+}
+
+// ===== Avatar Drawing (high-quality, mirroring avatar.html) =====
+const mainCanvas = document.getElementById('mainAvatarCanvas');
+const mCtx = mainCanvas.getContext('2d');
+
+// Canvas constants for receive.html (240×240, scale ≈ 1.2× of avatar.html's 200×240)
+const MCW = 240, MCH = 240;
+const MCX = 120;
+const MHR = 52;   // head radius
+const MHCY = 96;  // head center Y (scaled from avatar.html)
+const MNECK_T = MHCY + MHR - 12;
+const MBODY_T  = MNECK_T + 16;
+
+function mDarken(hex, amount) {
+  let c = parseInt(hex.replace('#',''), 16);
+  let r = Math.max(0, ((c>>16)&0xff) - Math.round(255*amount));
+  let g = Math.max(0, ((c>>8)&0xff) - Math.round(255*amount));
+  let b = Math.max(0, (c&0xff) - Math.round(255*amount));
+  return `rgb(${r},${g},${b})`;
+}
+function mLighten(hex, amount) {
+  let c = parseInt(hex.replace('#',''), 16);
+  let r = Math.min(255, ((c>>16)&0xff) + Math.round(255*amount));
+  let g = Math.min(255, ((c>>8)&0xff) + Math.round(255*amount));
+  let b = Math.min(255, (c&0xff) + Math.round(255*amount));
+  return `rgb(${r},${g},${b})`;
+}
+
+function drawMainAvatar(yOffset = 0, sc = 1, rotation = 0) {
+  const s = avatarState;
+  mCtx.clearRect(0, 0, MCW, MCH);
+  mCtx.save();
+  mCtx.translate(MCX, MCH/2 + yOffset);
+  mCtx.rotate(rotation);
+  mCtx.scale(sc, sc);
+  mCtx.translate(-MCX, -MCH/2);
+
+  const fc = s.faceColor || '#FFDABB';
+  const hc = s.hairColor || '#3D2B1F';
+
+  // Shadow
+  const sg = mCtx.createRadialGradient(MCX, MCH-18, 4, MCX, MCH-18, 46);
+  sg.addColorStop(0,'rgba(0,0,0,0.14)'); sg.addColorStop(1,'rgba(0,0,0,0)');
+  mCtx.beginPath(); mCtx.ellipse(MCX, MCH-18, 46, 14, 0, 0, Math.PI*2);
+  mCtx.fillStyle=sg; mCtx.fill();
+
+  mDrawBody(s.outfit, fc);
+  mDrawNeck(fc);
+  mDrawHairBack(s.hairStyle, hc);
+  mDrawHead(fc);
+  mDrawEars(fc);
+  if (s.accessory === 'earring') mDrawEarrings();
+  mDrawHairFront(s.hairStyle, hc);
+  mDrawEyebrows(s.expression);
+  mDrawEyes(s.eyeStyle, s.expression);
+  mDrawNose(fc);
+  mDrawMouth(s.expression);
+
+  if (['love','shy','happy','celebrate','cheer'].includes(s.expression)) {
+    mCtx.beginPath(); mCtx.ellipse(MCX-33, MHCY+21, 12, 7, -0.15, 0, Math.PI*2);
+    mCtx.fillStyle='rgba(255,130,130,0.27)'; mCtx.fill();
+    mCtx.beginPath(); mCtx.ellipse(MCX+33, MHCY+21, 12, 7, 0.15, 0, Math.PI*2);
+    mCtx.fillStyle='rgba(255,130,130,0.27)'; mCtx.fill();
+  }
+
+  if (s.accessory !== 'earring') mDrawAccessory(s.accessory);
+  if (['excited','celebrate'].includes(s.expression)) mDrawSparkles();
+
+  mCtx.restore();
+}
+
+// ---- m-prefix hair gradient helper ----
+function mHairGrd(hc, x1,y1,x2,y2) {
+  const g = mCtx.createLinearGradient(x1,y1,x2,y2);
+  g.addColorStop(0, mLighten(hc,0.14));
+  g.addColorStop(0.45, hc);
+  g.addColorStop(1, mDarken(hc,0.18));
+  return g;
+}
+
+function mDrawBody(outfit, fc) {
+  const cfgs = {
+    casual:{ top:'#5BA4CF', bot:'#3A7FBF', col:'#5BA4CF' },
+    formal:{ top:'#3A4A6B', bot:'#2A3555', col:'#3A4A6B' },
+    dress: { top:'#FF7BAC', bot:'#E0508A', col:'#FF7BAC' },
+    yukata:{ top:'#5C8A6E', bot:'#3D6B50', col:'#5C8A6E' },
+  };
+  const cfg = cfgs[outfit]||cfgs.casual;
+  const bodyGrd = mCtx.createLinearGradient(MCX-48, MBODY_T, MCX+48, MBODY_T+84);
+  bodyGrd.addColorStop(0, cfg.top); bodyGrd.addColorStop(1, cfg.bot);
+
+  mCtx.beginPath();
+  mCtx.moveTo(MCX-43, MBODY_T+5);
+  mCtx.quadraticCurveTo(MCX-50, MBODY_T, MCX-36, MBODY_T);
+  mCtx.lineTo(MCX+36, MBODY_T);
+  mCtx.quadraticCurveTo(MCX+50, MBODY_T, MCX+43, MBODY_T+5);
+  mCtx.lineTo(MCX+46, MBODY_T+66);
+  mCtx.quadraticCurveTo(MCX+43, MBODY_T+86, MCX+24, MBODY_T+88);
+  mCtx.lineTo(MCX-24, MBODY_T+88);
+  mCtx.quadraticCurveTo(MCX-43, MBODY_T+86, MCX-46, MBODY_T+66);
+  mCtx.closePath();
+  mCtx.fillStyle=bodyGrd; mCtx.fill();
+
+  // Outfit details
+  if (outfit === 'casual') {
+    // Ribbed crew neck
+    mCtx.save();
+    mCtx.beginPath();
+    mCtx.moveTo(MCX-24, MBODY_T);
+    mCtx.bezierCurveTo(MCX-14, MBODY_T+19, MCX+14, MBODY_T+19, MCX+24, MBODY_T);
+    mCtx.lineWidth=5; mCtx.strokeStyle='rgba(255,255,255,0.22)'; mCtx.stroke();
+    mCtx.lineWidth=3; mCtx.strokeStyle='rgba(255,255,255,0.45)'; mCtx.stroke();
+    mCtx.restore();
+    // Rib texture
+    for(let i=0;i<4;i++) {
+      const nx = MCX + Math.cos(Math.PI*(0.25+i*0.18))*(MHR-2);
+      mCtx.beginPath(); mCtx.moveTo(nx,MBODY_T+1); mCtx.lineTo(nx,MBODY_T+5);
+      mCtx.strokeStyle='rgba(255,255,255,0.2)'; mCtx.lineWidth=1.4; mCtx.stroke();
+    }
+    // Chest seam
+    mCtx.beginPath(); mCtx.moveTo(MCX,MBODY_T+21); mCtx.lineTo(MCX,MBODY_T+86);
+    mCtx.strokeStyle='rgba(0,0,0,0.07)'; mCtx.lineWidth=1.2; mCtx.stroke();
+    // Pocket
+    mCtx.beginPath(); mCtx.roundRect(MCX+10, MBODY_T+43, 22, 17, 4);
+    mCtx.fillStyle='rgba(0,0,0,0.06)'; mCtx.fill();
+    mCtx.strokeStyle='rgba(255,255,255,0.28)'; mCtx.lineWidth=1.6; mCtx.stroke();
+    mCtx.fillStyle='rgba(255,255,255,0.2)';
+    [0,6,12,18].forEach(dx => { mCtx.beginPath(); mCtx.arc(MCX+11+dx,MBODY_T+42,1,0,Math.PI*2); mCtx.fill(); });
+
+  } else if (outfit === 'formal') {
+    // Shirt placket
+    const placketG = mCtx.createLinearGradient(MCX-12,MBODY_T, MCX+12,MBODY_T+88);
+    placketG.addColorStop(0,'rgba(255,255,255,0.92)'); placketG.addColorStop(1,'rgba(240,240,248,0.88)');
+    mCtx.beginPath();
+    mCtx.moveTo(MCX-13, MBODY_T+2); mCtx.lineTo(MCX-11, MBODY_T+88);
+    mCtx.lineTo(MCX+11, MBODY_T+88); mCtx.lineTo(MCX+13, MBODY_T+2);
+    mCtx.closePath(); mCtx.fillStyle=placketG; mCtx.fill();
+    // Placket shadow edges
+    mCtx.strokeStyle='rgba(0,0,0,0.08)'; mCtx.lineWidth=1.2;
+    mCtx.beginPath(); mCtx.moveTo(MCX-12,MBODY_T+3); mCtx.lineTo(MCX-10,MBODY_T+88); mCtx.stroke();
+    mCtx.beginPath(); mCtx.moveTo(MCX+12,MBODY_T+3); mCtx.lineTo(MCX+10,MBODY_T+88); mCtx.stroke();
+    // Collar points
+    mCtx.beginPath();
+    mCtx.moveTo(MCX-17,MBODY_T); mCtx.lineTo(MCX-10,MBODY_T+12); mCtx.lineTo(MCX,MBODY_T+7);
+    mCtx.lineTo(MCX+10,MBODY_T+12); mCtx.lineTo(MCX+17,MBODY_T);
+    mCtx.fillStyle='rgba(255,255,255,0.9)'; mCtx.fill();
+    mCtx.strokeStyle='rgba(200,200,220,0.5)'; mCtx.lineWidth=0.9; mCtx.stroke();
+    mCtx.beginPath();
+    mCtx.moveTo(MCX-8,MBODY_T+10); mCtx.lineTo(MCX,MBODY_T+7); mCtx.lineTo(MCX+8,MBODY_T+10);
+    mCtx.strokeStyle='rgba(0,0,0,0.1)'; mCtx.lineWidth=1.2; mCtx.stroke();
+    // Buttons
+    [17,31,45,60].forEach(dy => {
+      const bG = mCtx.createRadialGradient(MCX-0.6,MBODY_T+dy-0.6,0.6,MCX,MBODY_T+dy,3.5);
+      bG.addColorStop(0,'#eee'); bG.addColorStop(1,'#aaa');
+      mCtx.beginPath(); mCtx.arc(MCX, MBODY_T+dy, 3.3, 0, Math.PI*2);
+      mCtx.fillStyle=bG; mCtx.fill();
+      mCtx.strokeStyle='rgba(0,0,0,0.2)'; mCtx.lineWidth=0.8; mCtx.stroke();
+      mCtx.strokeStyle='rgba(0,0,0,0.25)'; mCtx.lineWidth=0.7;
+      mCtx.beginPath(); mCtx.moveTo(MCX-1.4,MBODY_T+dy); mCtx.lineTo(MCX+1.4,MBODY_T+dy); mCtx.stroke();
+    });
+    // Tie
+    const tieG = mCtx.createLinearGradient(MCX-7,MBODY_T,MCX+7,MBODY_T+46);
+    tieG.addColorStop(0,'#E74C3C'); tieG.addColorStop(0.4,'#C0392B'); tieG.addColorStop(1,'#922B21');
+    mCtx.beginPath();
+    mCtx.moveTo(MCX-6,MBODY_T+2); mCtx.lineTo(MCX+6,MBODY_T+2);
+    mCtx.lineTo(MCX+8,MBODY_T+24); mCtx.lineTo(MCX+5,MBODY_T+29);
+    mCtx.lineTo(MCX,MBODY_T+48); mCtx.lineTo(MCX-5,MBODY_T+29);
+    mCtx.lineTo(MCX-8,MBODY_T+24); mCtx.closePath();
+    mCtx.fillStyle=tieG; mCtx.fill();
+    // Tie knot sheen
+    mCtx.beginPath();
+    mCtx.moveTo(MCX-6,MBODY_T+2); mCtx.lineTo(MCX+6,MBODY_T+2);
+    mCtx.lineTo(MCX+7,MBODY_T+14); mCtx.lineTo(MCX,MBODY_T+19); mCtx.lineTo(MCX-7,MBODY_T+14);
+    mCtx.fillStyle='rgba(255,255,255,0.1)'; mCtx.fill();
+    // Tie stripe
+    mCtx.beginPath(); mCtx.moveTo(MCX-5,MBODY_T+22); mCtx.lineTo(MCX+5,MBODY_T+22);
+    mCtx.strokeStyle='rgba(255,255,255,0.15)'; mCtx.lineWidth=1.8; mCtx.stroke();
+    mCtx.beginPath(); mCtx.moveTo(MCX-6,MBODY_T+29); mCtx.lineTo(MCX+6,MBODY_T+29); mCtx.stroke();
+
+  } else if (outfit === 'dress') {
+    // Sweetheart neckline
+    mCtx.beginPath();
+    mCtx.moveTo(MCX-31, MBODY_T+2);
+    mCtx.bezierCurveTo(MCX-26, MBODY_T+12, MCX-10, MBODY_T+17, MCX, MBODY_T+14);
+    mCtx.bezierCurveTo(MCX+10, MBODY_T+17, MCX+26, MBODY_T+12, MCX+31, MBODY_T+2);
+    mCtx.strokeStyle='rgba(255,255,255,0.45)'; mCtx.lineWidth=3; mCtx.stroke();
+    // Bodice seam
+    mCtx.beginPath();
+    mCtx.moveTo(MCX-24, MBODY_T+5); mCtx.bezierCurveTo(MCX-12,MBODY_T+36, MCX+12,MBODY_T+36, MCX+24,MBODY_T+5);
+    mCtx.strokeStyle='rgba(255,255,255,0.15)'; mCtx.lineWidth=1.2; mCtx.stroke();
+    // Waist ribbon
+    const ribbonG = mCtx.createLinearGradient(MCX-46,MBODY_T+50, MCX+46,MBODY_T+57);
+    ribbonG.addColorStop(0,'rgba(255,255,255,0.08)'); ribbonG.addColorStop(0.5,'rgba(255,255,255,0.28)'); ribbonG.addColorStop(1,'rgba(255,255,255,0.08)');
+    mCtx.beginPath(); mCtx.ellipse(MCX, MBODY_T+53, 43, 6, 0, 0, Math.PI*2);
+    mCtx.fillStyle=ribbonG; mCtx.fill();
+    // Skirt layers
+    [[MBODY_T+60, 43, 12],[MBODY_T+72, 48, 17]].forEach(([y,rx2,ry]) => {
+      mCtx.beginPath(); mCtx.ellipse(MCX, y, rx2, ry, 0, 0, Math.PI);
+      mCtx.fillStyle='rgba(255,255,255,0.08)'; mCtx.fill();
+      mCtx.strokeStyle='rgba(255,255,255,0.18)'; mCtx.lineWidth=1.2; mCtx.stroke();
+    });
+    // Bow
+    const bwG = mCtx.createRadialGradient(MCX-2,MBODY_T+51,1,MCX,MBODY_T+53,10);
+    bwG.addColorStop(0,'rgba(255,255,255,0.7)'); bwG.addColorStop(1,'rgba(255,255,255,0.3)');
+    mCtx.beginPath(); mCtx.ellipse(MCX-7,MBODY_T+53, 8,5,-0.35,0,Math.PI*2); mCtx.fillStyle=bwG; mCtx.fill();
+    mCtx.beginPath(); mCtx.ellipse(MCX+7,MBODY_T+53, 8,5, 0.35,0,Math.PI*2); mCtx.fill();
+    mCtx.beginPath(); mCtx.arc(MCX,MBODY_T+53, 5,0,Math.PI*2); mCtx.fillStyle='rgba(255,255,255,0.85)'; mCtx.fill();
+    // Lace hem
+    mCtx.strokeStyle='rgba(255,255,255,0.2)'; mCtx.lineWidth=1.5; mCtx.setLineDash([3,3]);
+    mCtx.beginPath(); mCtx.ellipse(MCX, MBODY_T+86, 43, 5, 0, 0, Math.PI); mCtx.stroke();
+    mCtx.setLineDash([]);
+
+  } else if (outfit === 'yukata') {
+    // Diagonal fabric texture
+    mCtx.save();
+    mCtx.beginPath();
+    mCtx.moveTo(MCX-46, MBODY_T); mCtx.lineTo(MCX+46, MBODY_T);
+    mCtx.lineTo(MCX+46, MBODY_T+88); mCtx.lineTo(MCX-46, MBODY_T+88); mCtx.closePath();
+    mCtx.clip();
+    mCtx.strokeStyle='rgba(255,255,255,0.06)'; mCtx.lineWidth=1.8;
+    for(let i=-7;i<17;i++) {
+      mCtx.beginPath(); mCtx.moveTo(MCX-46+i*12, MBODY_T); mCtx.lineTo(MCX-46+i*12+36, MBODY_T+88); mCtx.stroke();
+    }
+    mCtx.restore();
+    // Left-over-right collar
+    const colG = mCtx.createLinearGradient(MCX-22,MBODY_T, MCX+22,MBODY_T+29);
+    colG.addColorStop(0,'rgba(255,255,255,0.85)'); colG.addColorStop(1,'rgba(240,240,240,0.7)');
+    mCtx.beginPath();
+    mCtx.moveTo(MCX+17, MBODY_T); mCtx.lineTo(MCX-5, MBODY_T+26); mCtx.lineTo(MCX-5, MBODY_T+88);
+    mCtx.lineTo(MCX+2, MBODY_T+88); mCtx.lineTo(MCX+2, MBODY_T+31); mCtx.lineTo(MCX+22, MBODY_T);
+    mCtx.closePath(); mCtx.fillStyle=colG; mCtx.fill();
+    mCtx.beginPath();
+    mCtx.moveTo(MCX-17, MBODY_T); mCtx.lineTo(MCX+2, MBODY_T+24); mCtx.lineTo(MCX+2, MBODY_T+88);
+    mCtx.lineTo(MCX-2, MBODY_T+88); mCtx.lineTo(MCX-2, MBODY_T+29); mCtx.lineTo(MCX-22, MBODY_T);
+    mCtx.closePath(); mCtx.fillStyle='rgba(255,255,255,0.5)'; mCtx.fill();
+    mCtx.beginPath(); mCtx.moveTo(MCX-17,MBODY_T); mCtx.lineTo(MCX,MBODY_T+26); mCtx.lineTo(MCX+17,MBODY_T);
+    mCtx.strokeStyle='rgba(0,0,0,0.1)'; mCtx.lineWidth=1.8; mCtx.stroke();
+    // Obi sash
+    const obiG = mCtx.createLinearGradient(MCX-46,MBODY_T+46, MCX+46,MBODY_T+67);
+    obiG.addColorStop(0,'#C8920A'); obiG.addColorStop(0.3,'#F0C030'); obiG.addColorStop(0.6,'#D4A820'); obiG.addColorStop(1,'#A07010');
+    mCtx.beginPath();
+    mCtx.moveTo(MCX-46,MBODY_T+46); mCtx.lineTo(MCX+46,MBODY_T+46);
+    mCtx.lineTo(MCX+44,MBODY_T+67); mCtx.lineTo(MCX-44,MBODY_T+67); mCtx.closePath();
+    mCtx.fillStyle=obiG; mCtx.fill();
+    mCtx.strokeStyle='rgba(180,130,0,0.5)'; mCtx.lineWidth=1.2;
+    mCtx.beginPath(); mCtx.moveTo(MCX-46,MBODY_T+46); mCtx.lineTo(MCX+46,MBODY_T+46); mCtx.stroke();
+    mCtx.beginPath(); mCtx.moveTo(MCX-44,MBODY_T+67); mCtx.lineTo(MCX+44,MBODY_T+67); mCtx.stroke();
+    // Obi texture
+    mCtx.strokeStyle='rgba(255,200,50,0.2)'; mCtx.lineWidth=1.2;
+    [50,55,61].forEach(dy => {
+      mCtx.beginPath(); mCtx.moveTo(MCX-45,MBODY_T+dy); mCtx.lineTo(MCX+45,MBODY_T+dy); mCtx.stroke();
+    });
+    // Obi-dome
+    const domeG = mCtx.createRadialGradient(MCX-2,MBODY_T+55,2,MCX,MBODY_T+56,15);
+    domeG.addColorStop(0,'#FFF0A0'); domeG.addColorStop(0.5,'#F0C030'); domeG.addColorStop(1,'#A07010');
+    mCtx.beginPath(); mCtx.ellipse(MCX, MBODY_T+56, 16, 10, 0, 0, Math.PI*2);
+    mCtx.fillStyle=domeG; mCtx.fill();
+    mCtx.strokeStyle='rgba(140,90,0,0.4)'; mCtx.lineWidth=1.2; mCtx.stroke();
+    // Floral motif
+    const motifPos = [[MCX-26,MBODY_T+24],[MCX+26,MBODY_T+22],[MCX-19,MBODY_T+76],[MCX+21,MBODY_T+74]];
+    motifPos.forEach(([mx,my]) => {
+      mCtx.fillStyle='rgba(255,255,255,0.1)';
+      for(let i=0;i<5;i++) {
+        const a=i*Math.PI*2/5;
+        mCtx.beginPath(); mCtx.ellipse(mx+Math.cos(a)*6,my+Math.sin(a)*6,3.5,2.5,a,0,Math.PI*2); mCtx.fill();
+      }
+      mCtx.beginPath(); mCtx.arc(mx,my,3,0,Math.PI*2); mCtx.fillStyle='rgba(255,255,255,0.18)'; mCtx.fill();
+    });
+  }
+
+  // Arms
+  mDrawArms(outfit, cfg.col, fc);
+}
+
+function mDrawArms(outfit, bodyCol, fc) {
+  const ag = mCtx.createLinearGradient(MCX-66,MBODY_T+12,MCX-54,MBODY_T+72);
+  ag.addColorStop(0,bodyCol); ag.addColorStop(1,mDarken(bodyCol,0.15));
+  mCtx.beginPath();
+  mCtx.moveTo(MCX-38,MBODY_T+5);
+  mCtx.bezierCurveTo(MCX-58,MBODY_T+7,MCX-67,MBODY_T+36,MCX-63,MBODY_T+65);
+  mCtx.bezierCurveTo(MCX-60,MBODY_T+74,MCX-48,MBODY_T+74,MCX-46,MBODY_T+65);
+  mCtx.bezierCurveTo(MCX-43,MBODY_T+43,MCX-39,MBODY_T+20,MCX-31,MBODY_T+9);
+  mCtx.fillStyle=ag; mCtx.fill();
+  mCtx.beginPath(); mCtx.ellipse(MCX-54,MBODY_T+70,9,8,0.3,0,Math.PI*2);
+  mCtx.fillStyle=fc; mCtx.fill();
+  mCtx.strokeStyle='rgba(0,0,0,0.07)'; mCtx.lineWidth=1; mCtx.stroke();
+
+  const ag2 = mCtx.createLinearGradient(MCX+66,MBODY_T+12,MCX+54,MBODY_T+72);
+  ag2.addColorStop(0,bodyCol); ag2.addColorStop(1,mDarken(bodyCol,0.15));
+  mCtx.beginPath();
+  mCtx.moveTo(MCX+38,MBODY_T+5);
+  mCtx.bezierCurveTo(MCX+58,MBODY_T+7,MCX+67,MBODY_T+36,MCX+63,MBODY_T+65);
+  mCtx.bezierCurveTo(MCX+60,MBODY_T+74,MCX+48,MBODY_T+74,MCX+46,MBODY_T+65);
+  mCtx.bezierCurveTo(MCX+43,MBODY_T+43,MCX+39,MBODY_T+20,MCX+31,MBODY_T+9);
+  mCtx.fillStyle=ag2; mCtx.fill();
+  mCtx.beginPath(); mCtx.ellipse(MCX+54,MBODY_T+70,9,8,-0.3,0,Math.PI*2);
+  mCtx.fillStyle=fc; mCtx.fill();
+  mCtx.strokeStyle='rgba(0,0,0,0.07)'; mCtx.lineWidth=1; mCtx.stroke();
+}
+
+function mDrawNeck(fc) {
+  const ng = mCtx.createLinearGradient(MCX-11,MNECK_T,MCX+11,MNECK_T+20);
+  ng.addColorStop(0,fc); ng.addColorStop(1,mDarken(fc,0.08));
+  mCtx.beginPath();
+  mCtx.moveTo(MCX-11,MNECK_T);
+  mCtx.bezierCurveTo(MCX-12,MNECK_T+10,MCX-9,MNECK_T+20,MCX-8,MNECK_T+22);
+  mCtx.lineTo(MCX+8,MNECK_T+22);
+  mCtx.bezierCurveTo(MCX+9,MNECK_T+20,MCX+12,MNECK_T+10,MCX+11,MNECK_T);
+  mCtx.closePath();
+  mCtx.fillStyle=ng; mCtx.fill();
+}
+
+function mDrawHead(fc) {
+  const HY = MHCY, HR = MHR;
+  mCtx.beginPath();
+  mCtx.moveTo(MCX, HY - HR - 2);
+  mCtx.bezierCurveTo(MCX + HR + 7, HY - HR + 5, MCX + HR + 9, HY + 5, MCX + HR, HY + 12);
+  mCtx.bezierCurveTo(MCX + HR - 5, HY + HR*0.7, MCX + 12, HY + HR + 5, MCX, HY + HR + 7);
+  mCtx.bezierCurveTo(MCX - 12, HY + HR + 5, MCX - HR + 5, HY + HR*0.7, MCX - HR, HY + 12);
+  mCtx.bezierCurveTo(MCX - HR - 9, HY + 5, MCX - HR - 7, HY - HR + 5, MCX, HY - HR - 2);
+  mCtx.closePath();
+  mCtx.fillStyle = fc; mCtx.fill();
+  // Soft cheek blush
+  const blushL = mCtx.createRadialGradient(MCX - HR*0.52, HY + 12, 0, MCX - HR*0.52, HY + 12, HR*0.46);
+  blushL.addColorStop(0,'rgba(255,180,180,0.13)'); blushL.addColorStop(1,'rgba(255,180,180,0)');
+  mCtx.beginPath(); mCtx.ellipse(MCX - HR*0.52, HY + 12, HR*0.46, HR*0.32, 0, 0, Math.PI*2);
+  mCtx.fillStyle=blushL; mCtx.fill();
+  const blushR = mCtx.createRadialGradient(MCX + HR*0.52, HY + 12, 0, MCX + HR*0.52, HY + 12, HR*0.46);
+  blushR.addColorStop(0,'rgba(255,180,180,0.13)'); blushR.addColorStop(1,'rgba(255,180,180,0)');
+  mCtx.beginPath(); mCtx.ellipse(MCX + HR*0.52, HY + 12, HR*0.46, HR*0.32, 0, 0, Math.PI*2);
+  mCtx.fillStyle=blushR; mCtx.fill();
+}
+
+function mDrawEars(fc) {
+  // Left ear
+  mCtx.beginPath();
+  mCtx.ellipse(MCX - MHR + 1, MHCY + 7, 8, 12, -0.1, 0, Math.PI*2);
+  mCtx.fillStyle = fc; mCtx.fill();
+  // Right ear
+  mCtx.beginPath();
+  mCtx.ellipse(MCX + MHR - 1, MHCY + 7, 8, 12, 0.1, 0, Math.PI*2);
+  mCtx.fillStyle = fc; mCtx.fill();
+}
+
+function mDrawHairBack(style, hc) {
+  const HY = MHCY, HR = MHR;
+  if (style === 'short') {
+    const g = mHairGrd(hc, MCX-HR, HY-HR, MCX+HR, HY+5);
+    mCtx.beginPath();
+    mCtx.moveTo(MCX-HR-2, HY+7);
+    mCtx.bezierCurveTo(MCX-HR-5, HY-7, MCX-HR+2, HY-HR-10, MCX, HY-HR-7);
+    mCtx.bezierCurveTo(MCX+HR-2, HY-HR-10, MCX+HR+5, HY-7, MCX+HR+2, HY+7);
+    mCtx.bezierCurveTo(MCX+HR, HY+17, MCX-HR, HY+17, MCX-HR-2, HY+7);
+    mCtx.fillStyle=g; mCtx.fill();
+
+  } else if (style === 'long') {
+    const g = mHairGrd(hc, MCX-HR-14, HY, MCX-HR+5, MBODY_T+72);
+    mCtx.beginPath();
+    mCtx.moveTo(MCX-HR+7, HY+19);
+    mCtx.bezierCurveTo(MCX-HR-10, HY+38, MCX-HR-21, MBODY_T+36, MCX-HR-10, MBODY_T+74);
+    mCtx.bezierCurveTo(MCX-HR, MBODY_T+83, MCX-17, MBODY_T+81, MCX-10, MBODY_T+76);
+    mCtx.bezierCurveTo(MCX-7, HY+62, MCX-HR+5, HY+34, MCX-HR+7, HY+19);
+    mCtx.fillStyle=g; mCtx.fill();
+    mCtx.beginPath();
+    mCtx.moveTo(MCX-HR+7, HY+19);
+    mCtx.bezierCurveTo(MCX-HR-10, HY+38, MCX-HR-21, MBODY_T+36, MCX-HR-10, MBODY_T+74);
+    mCtx.strokeStyle=mDarken(hc,0.14); mCtx.lineWidth=1.4; mCtx.stroke();
+    const g2 = mHairGrd(hc, MCX+HR+14, HY, MCX+HR-5, MBODY_T+72);
+    mCtx.beginPath();
+    mCtx.moveTo(MCX+HR-7, HY+19);
+    mCtx.bezierCurveTo(MCX+HR+10, HY+38, MCX+HR+21, MBODY_T+36, MCX+HR+10, MBODY_T+74);
+    mCtx.bezierCurveTo(MCX+HR, MBODY_T+83, MCX+17, MBODY_T+81, MCX+10, MBODY_T+76);
+    mCtx.bezierCurveTo(MCX+7, HY+62, MCX+HR-5, HY+34, MCX+HR-7, HY+19);
+    mCtx.fillStyle=g2; mCtx.fill();
+    mCtx.beginPath();
+    mCtx.moveTo(MCX+HR-7, HY+19);
+    mCtx.bezierCurveTo(MCX+HR+10, HY+38, MCX+HR+21, MBODY_T+36, MCX+HR+10, MBODY_T+74);
+    mCtx.strokeStyle=mDarken(hc,0.14); mCtx.lineWidth=1.4; mCtx.stroke();
+
+  } else if (style === 'wavy') {
+    const g = mHairGrd(hc, MCX-HR-14, HY, MCX+HR+14, MBODY_T+60);
+    mCtx.beginPath();
+    mCtx.moveTo(MCX-HR+2, HY+17);
+    mCtx.bezierCurveTo(MCX-HR-17, HY+40, MCX-HR-14, MBODY_T+40, MCX-HR, MBODY_T+65);
+    mCtx.bezierCurveTo(MCX-HR+22, MBODY_T+74, MCX-5, MBODY_T+72, MCX, MBODY_T+68);
+    mCtx.bezierCurveTo(MCX+5, MBODY_T+72, MCX+HR-22, MBODY_T+74, MCX+HR, MBODY_T+65);
+    mCtx.bezierCurveTo(MCX+HR+14, MBODY_T+40, MCX+HR+17, HY+40, MCX+HR-2, HY+17);
+    mCtx.arc(MCX, HY-2, HR+2, 0.22, Math.PI-0.22, true);
+    mCtx.fillStyle=g; mCtx.fill();
+    mCtx.strokeStyle=mDarken(hc,0.1); mCtx.lineWidth=1.2;
+    [-HR-2, HR+2].forEach(sx => {
+      mCtx.beginPath();
+      for(let i=0;i<4;i++) {
+        const ty = HY+24+i*29;
+        mCtx.arc(MCX+sx+(sx>0?-12:12), ty, 10, sx>0?0:Math.PI, sx>0?Math.PI:0, sx>0);
+      }
+      mCtx.stroke();
+    });
+
+  } else if (style === 'bun') {
+    const g = mHairGrd(hc, MCX-HR, HY-5, MCX+HR, HY+14);
+    mCtx.beginPath();
+    mCtx.arc(MCX, HY-2, HR+2, Math.PI*0.88, Math.PI*0.12, false);
+    mCtx.arc(MCX, HY, HR+1, 0.14, Math.PI-0.14, false);
+    mCtx.closePath(); mCtx.fillStyle=g; mCtx.fill();
+
+  } else if (style === 'hat') {
+    const g = mHairGrd(hc, MCX-HR, HY, MCX+HR, HY+10);
+    mCtx.beginPath(); mCtx.arc(MCX, HY, HR+1, 0.28, Math.PI-0.28, false);
+    mCtx.arc(MCX, HY+5, HR+1, Math.PI-0.28, 0.28, true);
+    mCtx.closePath(); mCtx.fillStyle=g; mCtx.fill();
+  }
+}
+
+function mDrawHairFront(style, hc) {
+  const HY = MHCY, HR = MHR;
+  const hcL = mLighten(hc, 0.22);
+  const hcD = mDarken(hc, 0.07);
+
+  if (style === 'short') {
+    const g = mHairGrd(hc, MCX-HR, HY-HR-5, MCX+HR, HY+5);
+    mCtx.beginPath();
+    mCtx.arc(MCX, HY-9, HR+1, Math.PI*1.04, -0.06);
+    mCtx.quadraticCurveTo(MCX+HR+3, HY-5, MCX+HR-1, HY+12);
+    mCtx.arc(MCX, HY, HR+0.5, 0.22, Math.PI-0.22, true);
+    mCtx.quadraticCurveTo(MCX-HR-3, HY-5, MCX-HR-1, HY-9);
+    mCtx.closePath(); mCtx.fillStyle=g; mCtx.fill();
+    // Tapered strands
+    const strands = [[-24,-1,5,13,-0.06],[-14,-5,6,14,-0.04],[-3,-7,6,14,0],
+                     [7,-6,6,13,0.04],[18,-2,5,12,0.06]];
+    strands.forEach(([dx,dy,rw,rh,rot]) => {
+      mCtx.save();
+      mCtx.translate(MCX+dx, HY-HR+6+dy); mCtx.rotate(rot);
+      mCtx.beginPath();
+      mCtx.moveTo(-rw,0); mCtx.bezierCurveTo(-rw,rh*0.5,-rw*0.4,rh,0,rh+2);
+      mCtx.bezierCurveTo(rw*0.4,rh,rw,rh*0.5,rw,0);
+      mCtx.bezierCurveTo(rw,-rh*0.3,-rw,-rh*0.3,-rw,0);
+      mCtx.fillStyle=hcD; mCtx.fill();
+      mCtx.beginPath(); mCtx.ellipse(-rw*0.2,rh*0.2,rw*0.3,rh*0.35,0,0,Math.PI*2);
+      mCtx.fillStyle=mLighten(hc,0.1); mCtx.fill();
+      mCtx.restore();
+    });
+    // Scalp highlight
+    const hlG = mCtx.createLinearGradient(MCX-10, HY-HR, MCX-2, HY-HR+19);
+    hlG.addColorStop(0,'rgba(255,255,255,0.28)'); hlG.addColorStop(1,'rgba(255,255,255,0)');
+    mCtx.beginPath(); mCtx.ellipse(MCX-6, HY-HR+10, 5, 15, -0.25, 0, Math.PI);
+    mCtx.fillStyle=hlG; mCtx.fill();
+
+  } else if (style === 'long') {
+    const g = mHairGrd(hc, MCX-HR, HY-HR, MCX+HR, HY);
+    mCtx.beginPath();
+    mCtx.arc(MCX, HY-9, HR+1, Math.PI*1.07, -0.08);
+    mCtx.arc(MCX, HY, HR+0.5, -0.08, Math.PI+0.08, true);
+    mCtx.closePath(); mCtx.fillStyle=g; mCtx.fill();
+    const strands = [[-26,1,6,17,-0.08],[-15,-4,6,15,-0.04],[-3,-7,6,17,0],
+                     [8,-5,6,15,0.04],[20,-1,6,14,0.07]];
+    strands.forEach(([dx,dy,rw,rh,rot]) => {
+      mCtx.save();
+      mCtx.translate(MCX+dx, HY-HR+7+dy); mCtx.rotate(rot);
+      mCtx.beginPath();
+      mCtx.moveTo(-rw,0); mCtx.bezierCurveTo(-rw,rh*0.5,-rw*0.3,rh,0,rh+4);
+      mCtx.bezierCurveTo(rw*0.3,rh,rw,rh*0.5,rw,0);
+      mCtx.bezierCurveTo(rw,-rh*0.3,-rw,-rh*0.3,-rw,0);
+      mCtx.fillStyle=hcD; mCtx.fill();
+      mCtx.restore();
+    });
+    const hlG = mCtx.createLinearGradient(MCX-12, HY-HR, MCX-4, HY-HR+24);
+    hlG.addColorStop(0,'rgba(255,255,255,0.3)'); hlG.addColorStop(1,'rgba(255,255,255,0)');
+    mCtx.beginPath(); mCtx.ellipse(MCX-7, HY-HR+12, 5, 18, -0.24, 0, Math.PI);
+    mCtx.fillStyle=hlG; mCtx.fill();
+
+  } else if (style === 'wavy') {
+    const g = mHairGrd(hc, MCX-HR, HY-HR, MCX+HR, HY);
+    mCtx.beginPath();
+    mCtx.arc(MCX, HY-7, HR+2, Math.PI*1.04, -0.07);
+    mCtx.arc(MCX, HY, HR+1, -0.07, Math.PI+0.07, true);
+    mCtx.closePath(); mCtx.fillStyle=g; mCtx.fill();
+    const wStrands = [[-26,1,0.12],[-14,-4,0.08],[-1,-6,0],[13,-4,-0.08],[25,1,-0.12]];
+    wStrands.forEach(([dx,dy,wv]) => {
+      mCtx.save();
+      mCtx.translate(MCX+dx, HY-HR+7+dy);
+      mCtx.beginPath();
+      mCtx.moveTo(-6,0);
+      mCtx.bezierCurveTo(-7+wv*48,6,-6-wv*24,12,-5+wv*36,17);
+      mCtx.bezierCurveTo(-4+wv*12,21,4-wv*12,21,5-wv*36,17);
+      mCtx.bezierCurveTo(6+wv*24,12,7-wv*48,6,6,0);
+      mCtx.bezierCurveTo(5,-5,-5,-5,-6,0);
+      mCtx.fillStyle=hcD; mCtx.fill();
+      mCtx.restore();
+    });
+    const hlG = mCtx.createLinearGradient(MCX-9,HY-HR,MCX-2,HY-HR+21);
+    hlG.addColorStop(0,'rgba(255,255,255,0.28)'); hlG.addColorStop(1,'rgba(255,255,255,0)');
+    mCtx.beginPath(); mCtx.ellipse(MCX-6,HY-HR+10,6,17,-0.2,0,Math.PI);
+    mCtx.fillStyle=hlG; mCtx.fill();
+
+  } else if (style === 'bun') {
+    const g = mHairGrd(hc, MCX-HR, HY-HR, MCX+HR, HY);
+    mCtx.beginPath();
+    mCtx.arc(MCX, HY-7, HR+1, Math.PI*1.08, -0.11);
+    mCtx.arc(MCX, HY, HR, -0.11, Math.PI+0.11, true);
+    mCtx.closePath(); mCtx.fillStyle=g; mCtx.fill();
+    // Side wisps
+    [[MCX-HR-5, HY+2, 8, 17, -0.2], [MCX+HR+5, HY+2, 8, 17, 0.2]].forEach(([bx,by,rw,rh,rot]) => {
+      mCtx.save(); mCtx.translate(bx, by); mCtx.rotate(rot);
+      mCtx.beginPath();
+      mCtx.moveTo(-rw/2,0); mCtx.bezierCurveTo(-rw,rh*0.4,-rw*0.6,rh,0,rh+2);
+      mCtx.bezierCurveTo(rw*0.6,rh,rw,rh*0.4,rw/2,0);
+      mCtx.bezierCurveTo(rw/2,-5,-rw/2,-5,-rw/2,0);
+      mCtx.fillStyle=hcD; mCtx.fill(); mCtx.restore();
+    });
+    // Bun sphere
+    const BY = HY-HR-12;
+    const bunG = mCtx.createRadialGradient(MCX-7, BY-7, 2, MCX, BY, 23);
+    bunG.addColorStop(0, mLighten(hc,0.3));
+    bunG.addColorStop(0.35, mLighten(hc,0.12));
+    bunG.addColorStop(0.7, hc);
+    bunG.addColorStop(1, mDarken(hc,0.22));
+    mCtx.beginPath(); mCtx.arc(MCX, BY, 23, 0, Math.PI*2);
+    mCtx.fillStyle=bunG; mCtx.fill();
+    // Bun wrap lines
+    mCtx.strokeStyle=mDarken(hc,0.16); mCtx.lineWidth=1.3; mCtx.lineCap='round';
+    for(let a=0; a<Math.PI*2; a+=0.42) {
+      mCtx.beginPath();
+      mCtx.arc(MCX, BY, 17, a, a+0.22); mCtx.stroke();
+    }
+    // Rim shadow
+    mCtx.beginPath(); mCtx.arc(MCX+5, BY+6, 20, 0.4, Math.PI*1.1);
+    mCtx.strokeStyle='rgba(0,0,0,0.12)'; mCtx.lineWidth=3.5; mCtx.stroke();
+    // Specular
+    const hl2 = mCtx.createRadialGradient(MCX-8, BY-8, 1, MCX-6, BY-6, 10);
+    hl2.addColorStop(0,'rgba(255,255,255,0.45)'); hl2.addColorStop(1,'rgba(255,255,255,0)');
+    mCtx.beginPath(); mCtx.arc(MCX-6, BY-6, 10, 0, Math.PI*2);
+    mCtx.fillStyle=hl2; mCtx.fill();
+    // Hair tie
+    const tieG = mCtx.createLinearGradient(MCX-22,BY+19,MCX+22,BY+19);
+    tieG.addColorStop(0,mDarken(hc,0.3)); tieG.addColorStop(0.5,mDarken(hc,0.08)); tieG.addColorStop(1,mDarken(hc,0.3));
+    mCtx.beginPath(); mCtx.ellipse(MCX, BY+20, 22, 5, 0, 0, Math.PI*2);
+    mCtx.fillStyle=tieG; mCtx.fill();
+    mCtx.beginPath(); mCtx.ellipse(MCX, BY+20, 22, 5, 0, 0, Math.PI*2);
+    mCtx.strokeStyle=mDarken(hc,0.25); mCtx.lineWidth=1.2; mCtx.stroke();
+
+  } else if (style === 'hat') {
+    // Minimal fringe under hat
+    const hcDark = mDarken(hc,0.07);
+    [[-17,2,5,10,-0.04],[0,0,5,9,0],[17,2,5,10,0.04]].forEach(([dx,dy,rw,rh,rot]) => {
+      mCtx.save(); mCtx.translate(MCX+dx, HY-HR+20+dy); mCtx.rotate(rot);
+      mCtx.beginPath();
+      mCtx.moveTo(-rw,0); mCtx.bezierCurveTo(-rw,rh*0.5,-rw*0.3,rh,0,rh+1);
+      mCtx.bezierCurveTo(rw*0.3,rh,rw,rh*0.5,rw,0);
+      mCtx.bezierCurveTo(rw,-rh*0.3,-rw,-rh*0.3,-rw,0);
+      mCtx.fillStyle=hcDark; mCtx.fill(); mCtx.restore();
+    });
+    // Hat brim
+    const brimG = mCtx.createLinearGradient(MCX-HR-5, HY-HR+5, MCX+HR+5, HY-HR+5);
+    brimG.addColorStop(0, mDarken(hc,0.22));
+    brimG.addColorStop(0.5, mLighten(hc,0.06));
+    brimG.addColorStop(1, mDarken(hc,0.22));
+    mCtx.beginPath(); mCtx.ellipse(MCX, HY-HR+8, HR+5, 11, 0, 0, Math.PI*2);
+    mCtx.fillStyle=brimG; mCtx.fill();
+    mCtx.strokeStyle=mDarken(hc,0.2); mCtx.lineWidth=1.2; mCtx.stroke();
+    // Hat crown
+    const crownG = mCtx.createLinearGradient(MCX-HR+5, HY-HR-26, MCX+HR-5, HY-HR+7);
+    crownG.addColorStop(0, mLighten(hc,0.28));
+    crownG.addColorStop(0.4, mLighten(hc,0.1));
+    crownG.addColorStop(1, mDarken(hc,0.12));
+    mCtx.beginPath();
+    mCtx.moveTo(MCX-HR+7, HY-HR+7);
+    mCtx.bezierCurveTo(MCX-HR+5, HY-HR-7, MCX-HR+10, HY-HR-29, MCX, HY-HR-31);
+    mCtx.bezierCurveTo(MCX+HR-10, HY-HR-29, MCX+HR-5, HY-HR-7, MCX+HR-7, HY-HR+7);
+    mCtx.closePath();
+    mCtx.fillStyle=crownG; mCtx.fill();
+    mCtx.strokeStyle=mDarken(hc,0.2); mCtx.lineWidth=1.4; mCtx.stroke();
+    // Hat band
+    const bandG = mCtx.createLinearGradient(MCX-HR+7,HY-HR-5,MCX+HR-7,HY-HR-5);
+    bandG.addColorStop(0,'rgba(0,0,0,0.18)'); bandG.addColorStop(0.5,'rgba(0,0,0,0.08)'); bandG.addColorStop(1,'rgba(0,0,0,0.18)');
+    mCtx.beginPath();
+    mCtx.moveTo(MCX-HR+7, HY-HR-1); mCtx.bezierCurveTo(MCX-HR+6, HY-HR-10, MCX+HR-6, HY-HR-10, MCX+HR-7, HY-HR-1);
+    mCtx.lineWidth=6; mCtx.strokeStyle=bandG; mCtx.stroke();
+    // Hat badge
+    const badgeG = mCtx.createRadialGradient(MCX-1,HY-HR-29,1,MCX,HY-HR-28,6);
+    badgeG.addColorStop(0,'#FF8EC4'); badgeG.addColorStop(1,'#FF3B7A');
+    mCtx.beginPath(); mCtx.arc(MCX, HY-HR-28, 6, 0, Math.PI*2);
+    mCtx.fillStyle=badgeG; mCtx.fill();
+    mCtx.strokeStyle='rgba(255,255,255,0.3)'; mCtx.lineWidth=1.2; mCtx.stroke();
+  }
+}
+
+function mDrawEyebrows(expr) {
+  mCtx.lineCap='round'; mCtx.lineJoin='round';
+  const eyeY = MHCY - 3;
+  const browY = eyeY - 18;
+  // [x1,y1, cx,cy, x2,y2] per brow
+  const shapes = {
+    happy:     [[-26,2, -18,-4, -8,1],   [8,1,   18,-4, 26,2]],
+    love:      [[-26,0, -18,-6, -8,-1],  [8,-1,  18,-6, 26,0]],
+    thanks:    [[-26,2, -18,-2, -8,3],   [8,3,   18,-2, 26,2]],
+    cool:      [[-26,-6,-18,-6, -8,-6],  [8,-6,  18,-6, 26,-6]],
+    excited:   [[-26,-5,-18,-7, -8,-3],  [8,-3,  18,-7, 26,-5]],
+    shy:       [[-26,2, -18,5,  -8,7],   [8,7,   18,5,  26,2]],
+    celebrate: [[-26,-4,-18,-6, -8,0],   [8,0,   18,-6, 26,-4]],
+    cheer:     [[-26,-4,-18,-6, -8,-2],  [8,-2,  18,-6, 26,-4]],
+  };
+  const segs = shapes[expr] || shapes.happy;
+  mCtx.strokeStyle = mDarken(avatarState.hairColor || '#3D2B1F', 0.1);
+  mCtx.lineWidth = 2.6;
+  segs.forEach(([x1,y1, cx,cy, x2,y2]) => {
+    mCtx.beginPath();
+    mCtx.moveTo(MCX+x1, browY+y1);
+    mCtx.quadraticCurveTo(MCX+cx, browY+cy, MCX+x2, browY+y2);
+    mCtx.stroke();
+  });
+}
+
+// ---- m-prefix single anime eye helper ----
+function mDrawEye(ex, eyeY, irisCol, eyeR, style) {
+  // White sclera with bold outline
+  mCtx.save();
+  mCtx.beginPath();
+  mCtx.ellipse(ex, eyeY, eyeR, eyeR * 0.88, 0, 0, Math.PI*2);
+  mCtx.fillStyle = '#ffffff'; mCtx.fill();
+  mCtx.beginPath();
+  mCtx.ellipse(ex, eyeY, eyeR, eyeR * 0.88, 0, 0, Math.PI*2);
+  mCtx.strokeStyle = 'rgba(30,15,10,0.85)'; mCtx.lineWidth = 2.6; mCtx.stroke();
+  mCtx.restore();
+
+  // Large iris (anime style)
+  const irisR = eyeR * 0.76;
+  const iG = mCtx.createRadialGradient(ex - irisR*0.22, eyeY - irisR*0.28, irisR*0.05,
+                                        ex, eyeY, irisR);
+  iG.addColorStop(0, mLighten(irisCol, 0.45));
+  iG.addColorStop(0.35, mLighten(irisCol, 0.18));
+  iG.addColorStop(0.72, irisCol);
+  iG.addColorStop(1, mDarken(irisCol, 0.35));
+  mCtx.beginPath(); mCtx.arc(ex, eyeY, irisR, 0, Math.PI*2);
+  mCtx.fillStyle = iG; mCtx.fill();
+
+  // Large pupil
+  mCtx.beginPath(); mCtx.arc(ex, eyeY, irisR * 0.42, 0, Math.PI*2);
+  mCtx.fillStyle = '#111'; mCtx.fill();
+
+  // Primary catchlight
+  mCtx.beginPath(); mCtx.arc(ex - irisR*0.28, eyeY - irisR*0.35, irisR * 0.28, 0, Math.PI*2);
+  mCtx.fillStyle = 'rgba(255,255,255,0.96)'; mCtx.fill();
+  // Secondary catchlight
+  mCtx.beginPath(); mCtx.arc(ex + irisR*0.30, eyeY + irisR*0.22, irisR * 0.13, 0, Math.PI*2);
+  mCtx.fillStyle = 'rgba(255,255,255,0.65)'; mCtx.fill();
+
+  // Bold upper lash bar
+  mCtx.save();
+  mCtx.beginPath();
+  mCtx.ellipse(ex, eyeY - eyeR*0.04, eyeR + 1, eyeR * 0.88 + 0.5, 0, Math.PI + 0.12, -0.12);
+  mCtx.strokeStyle = 'rgba(20,8,8,0.9)'; mCtx.lineWidth = 3.8; mCtx.lineCap = 'round'; mCtx.stroke();
+  mCtx.restore();
+
+  // Lash tips
+  mCtx.strokeStyle = 'rgba(20,8,8,0.75)'; mCtx.lineWidth = 1.9; mCtx.lineCap = 'round';
+  [[-0.72, 6.2], [-0.38, 6.6], [-0.04, 6.4]].forEach(([ang, len]) => {
+    const bx = ex + Math.cos(Math.PI + ang) * (eyeR + 1);
+    const by = eyeY + Math.sin(Math.PI + ang) * (eyeR * 0.88 + 0.5);
+    const oAng = Math.PI + ang - 0.28;
+    mCtx.beginPath(); mCtx.moveTo(bx, by);
+    mCtx.lineTo(bx + Math.cos(oAng)*len, by + Math.sin(oAng)*len);
+    mCtx.stroke();
+  });
+}
+
+function mDrawEyes(style, expr) {
+  const eyeY = MHCY - 2;
+  const lx = MCX - 25, rx = MCX + 25;
+
+  if (['happy','celebrate','cheer','excited'].includes(expr)) {
+    // Anime happy eyes: filled upward arc
+    mCtx.lineCap = 'round';
+    [lx, rx].forEach(ex => {
+      mCtx.beginPath();
+      mCtx.arc(ex, eyeY + 6, 11, Math.PI + 0.1, -0.1);
+      mCtx.arc(ex, eyeY - 2, 11, -0.1, Math.PI + 0.1, true);
+      mCtx.closePath();
+      mCtx.fillStyle = '#1a1a1a'; mCtx.fill();
+      // Inner shine
+      mCtx.beginPath(); mCtx.arc(ex, eyeY + 4, 6.5, Math.PI + 0.3, -0.3);
+      mCtx.strokeStyle = 'rgba(255,255,255,0.22)'; mCtx.lineWidth = 2; mCtx.stroke();
+    });
+
+  } else if (expr === 'love') {
+    [lx, rx].forEach(ex => {
+      mCtx.save(); mCtx.translate(ex, eyeY - 7);
+      const hG = mCtx.createRadialGradient(-3,-4,1,0,0,12);
+      hG.addColorStop(0,'#FF8FB0'); hG.addColorStop(0.55,'#FF2D55'); hG.addColorStop(1,'#CC0033');
+      mCtx.fillStyle = hG;
+      mDrawHeartPath(mCtx, 0, 0, 11); mCtx.fill();
+      mCtx.beginPath(); mCtx.ellipse(-4,-5.5,3.5,2.5,-0.3,0,Math.PI*2);
+      mCtx.fillStyle='rgba(255,255,255,0.45)'; mCtx.fill();
+      mCtx.restore();
+    });
+
+  } else if (expr === 'cool') {
+    // Aviator sunglasses
+    const lensData = [{x:lx-13,w:25,h:18,r:7},{x:rx-12,w:25,h:18,r:7}];
+    lensData.forEach(({x,w,h,r}) => {
+      const lG = mCtx.createLinearGradient(x, eyeY-9, x, eyeY+9);
+      lG.addColorStop(0,'rgba(20,20,40,0.92)'); lG.addColorStop(1,'rgba(10,10,25,0.85)');
+      mCtx.beginPath(); mCtx.roundRect(x, eyeY-9, w, h, r);
+      mCtx.fillStyle=lG; mCtx.fill();
+      const glareG = mCtx.createLinearGradient(x, eyeY-8, x+w*0.5, eyeY+2);
+      glareG.addColorStop(0,'rgba(255,255,255,0.18)'); glareG.addColorStop(1,'rgba(255,255,255,0)');
+      mCtx.beginPath(); mCtx.roundRect(x, eyeY-9, w*0.55, h*0.6, r);
+      mCtx.fillStyle=glareG; mCtx.fill();
+      mCtx.beginPath(); mCtx.roundRect(x, eyeY-9, w, h, r);
+      const fG = mCtx.createLinearGradient(x,eyeY-9,x+w,eyeY+h-9);
+      fG.addColorStop(0,'#bbb'); fG.addColorStop(0.5,'#888'); fG.addColorStop(1,'#aaa');
+      mCtx.strokeStyle=fG; mCtx.lineWidth=2; mCtx.stroke();
+    });
+    const bridgeG = mCtx.createLinearGradient(lx+12,eyeY-2,rx-12,eyeY-2);
+    bridgeG.addColorStop(0,'#aaa'); bridgeG.addColorStop(0.5,'#777'); bridgeG.addColorStop(1,'#aaa');
+    mCtx.beginPath(); mCtx.moveTo(lx+12,eyeY-2); mCtx.lineTo(rx-12,eyeY-2);
+    mCtx.strokeStyle=bridgeG; mCtx.lineWidth=2.2; mCtx.stroke();
+    mCtx.strokeStyle='#999'; mCtx.lineWidth=2;
+    mCtx.beginPath(); mCtx.moveTo(lx-13,eyeY-2); mCtx.bezierCurveTo(lx-17,eyeY-2,lx-22,eyeY+2,lx-24,eyeY+4); mCtx.stroke();
+    mCtx.beginPath(); mCtx.moveTo(rx+13,eyeY-2); mCtx.bezierCurveTo(rx+17,eyeY-2,rx+22,eyeY+2,rx+24,eyeY+4); mCtx.stroke();
+
+  } else {
+    const irisColors = { normal:'#3B78E7', sparkle:'#E8309A', sleepy:'#7B7FCD', thanks:'#2e8b57', shy:'#D05090' };
+    const irisCol = irisColors[style] || irisColors.normal;
+    const eyeR = style === 'sleepy' ? 8 : 11;
+
+    [lx, rx].forEach(ex => { mDrawEye(ex, eyeY, irisCol, eyeR, style); });
+
+    if (style === 'sparkle') {
+      [[lx+eyeR+3, eyeY-eyeR-1, 6],[rx+eyeR+3, eyeY-eyeR-4, 5],
+       [lx-eyeR-5, eyeY-5, 4],[rx+eyeR+3, eyeY+5, 4]].forEach(([sx,sy,sr]) => {
+        mCtx.save(); mCtx.translate(sx,sy); mCtx.fillStyle='#FFD700';
+        mCtx.beginPath();
+        for(let i=0;i<5;i++){ mCtx.rotate(Math.PI*2/5); mCtx.lineTo(0,-sr); mCtx.rotate(Math.PI/5); mCtx.lineTo(0,-sr*0.4); }
+        mCtx.closePath(); mCtx.fill(); mCtx.restore();
+      });
+    }
+    if (style === 'sleepy') {
+      const fc = avatarState.faceColor || '#FFDABB';
+      [lx, rx].forEach(ex => {
+        mCtx.beginPath(); mCtx.ellipse(ex, eyeY - eyeR*0.1, eyeR + 0.6, eyeR * 0.52, 0, Math.PI, 0);
+        mCtx.fillStyle = fc; mCtx.fill();
+        mCtx.beginPath(); mCtx.ellipse(ex, eyeY - eyeR*0.1, eyeR + 0.6, eyeR * 0.52, 0, Math.PI, 0);
+        mCtx.strokeStyle = 'rgba(20,8,8,0.75)'; mCtx.lineWidth = 3.2; mCtx.lineCap = 'round'; mCtx.stroke();
+      });
+    }
+  }
+}
+
+function mDrawHeartPath(ctx, x, y, s) {
+  ctx.beginPath();
+  ctx.moveTo(x, y+s*0.3);
+  ctx.bezierCurveTo(x, y-s*0.3, x-s, y-s*0.3, x-s, y+s*0.3);
+  ctx.bezierCurveTo(x-s, y+s*0.85, x, y+s*1.2, x, y+s*1.2);
+  ctx.bezierCurveTo(x, y+s*1.2, x+s, y+s*0.85, x+s, y+s*0.3);
+  ctx.bezierCurveTo(x+s, y-s*0.3, x, y-s*0.3, x, y+s*0.3);
+}
+
+function drawMainHeart(ctx, x, y, size) {
+  ctx.save(); ctx.fillStyle='#FF4B6E';
+  ctx.beginPath();
+  ctx.moveTo(x,y+size*0.3);
+  ctx.bezierCurveTo(x,y-size*0.3,x-size,y-size*0.3,x-size,y+size*0.3);
+  ctx.bezierCurveTo(x-size,y+size*0.8,x,y+size*1.2,x,y+size*1.2);
+  ctx.bezierCurveTo(x,y+size*1.2,x+size,y+size*0.8,x+size,y+size*0.3);
+  ctx.bezierCurveTo(x+size,y-size*0.3,x,y-size*0.3,x,y+size*0.3);
+  ctx.fill(); ctx.restore();
+}
+
+function mDrawNose(fc) {
+  const ny = MHCY + 17;
+  mCtx.beginPath();
+  mCtx.moveTo(MCX - 3.5, ny);
+  mCtx.quadraticCurveTo(MCX, ny + 5, MCX + 3.5, ny);
+  mCtx.strokeStyle = mDarken(fc, 0.22);
+  mCtx.lineWidth = 1.8;
+  mCtx.lineCap = 'round';
+  mCtx.stroke();
+}
+
+function mDrawMouth(expr) {
+  const my=MHCY+29; mCtx.lineCap='round'; mCtx.lineJoin='round';
+  if (['happy','excited','celebrate'].includes(expr)) {
+    mCtx.beginPath(); mCtx.moveTo(MCX-17,my); mCtx.bezierCurveTo(MCX-12,my+17,MCX+12,my+17,MCX+17,my);
+    mCtx.strokeStyle='#c0555f'; mCtx.lineWidth=2.5; mCtx.stroke();
+    mCtx.beginPath(); mCtx.moveTo(MCX-16,my+1); mCtx.bezierCurveTo(MCX-11,my+15,MCX+11,my+15,MCX+16,my+1);
+    mCtx.closePath(); mCtx.fillStyle='#6B2737'; mCtx.fill();
+    mCtx.beginPath(); mCtx.moveTo(MCX-15,my+2); mCtx.bezierCurveTo(MCX-10,my+8,MCX+10,my+8,MCX+15,my+2);
+    mCtx.fillStyle='#fff'; mCtx.fill();
+    mCtx.beginPath(); mCtx.ellipse(MCX,my+12,7,5,0,0,Math.PI); mCtx.fillStyle='#FF8A9A'; mCtx.fill();
+  } else if (expr==='love') {
+    mCtx.beginPath(); mCtx.moveTo(MCX-12,my+2);
+    mCtx.bezierCurveTo(MCX-7,my+12,MCX+7,my+12,MCX+12,my+2);
+    mCtx.strokeStyle='#c0555f'; mCtx.lineWidth=2.8; mCtx.stroke();
+    mCtx.fillStyle='#FF8A9A';
+    mCtx.beginPath(); mCtx.moveTo(MCX-12,my+2); mCtx.bezierCurveTo(MCX-7,my+12,MCX+7,my+12,MCX+12,my+2); mCtx.closePath(); mCtx.fill();
+  } else if (expr==='thanks') {
+    mCtx.beginPath(); mCtx.moveTo(MCX-13,my+5);
+    mCtx.bezierCurveTo(MCX-5,my+12,MCX+5,my+12,MCX+13,my+5);
+    mCtx.strokeStyle='#c0555f'; mCtx.lineWidth=2.5; mCtx.stroke();
+  } else if (expr==='cool') {
+    mCtx.beginPath(); mCtx.moveTo(MCX-12,my+7); mCtx.lineTo(MCX+12,my+7);
+    mCtx.strokeStyle='#555'; mCtx.lineWidth=2.5; mCtx.stroke();
+    mCtx.beginPath(); mCtx.moveTo(MCX+7,my+7); mCtx.bezierCurveTo(MCX+10,my+7,MCX+12,my+5,MCX+12,my+2);
+    mCtx.stroke();
+  } else if (expr==='shy') {
+    mCtx.beginPath(); mCtx.moveTo(MCX-10,my+5);
+    mCtx.bezierCurveTo(MCX-4,my+11,MCX+4,my+11,MCX+10,my+5);
+    mCtx.strokeStyle='#c0555f'; mCtx.lineWidth=2.5; mCtx.stroke();
+  } else if (expr==='cheer') {
+    mCtx.beginPath(); mCtx.moveTo(MCX-16,my);
+    mCtx.bezierCurveTo(MCX-12,my+19,MCX+12,my+19,MCX+16,my);
+    mCtx.strokeStyle='#c0555f'; mCtx.lineWidth=2.5; mCtx.stroke();
+    mCtx.beginPath(); mCtx.moveTo(MCX-15,my+1); mCtx.bezierCurveTo(MCX-10,my+17,MCX+10,my+17,MCX+15,my+1);
+    mCtx.closePath(); mCtx.fillStyle='#6B2737'; mCtx.fill();
+    mCtx.beginPath(); mCtx.moveTo(MCX-14,my+2); mCtx.bezierCurveTo(MCX-9,my+8,MCX+9,my+8,MCX+14,my+2);
+    mCtx.fillStyle='#fff'; mCtx.fill();
+  } else {
+    mCtx.beginPath(); mCtx.moveTo(MCX-11,my+5);
+    mCtx.bezierCurveTo(MCX-4,my+10,MCX+4,my+10,MCX+11,my+5);
+    mCtx.strokeStyle='#c0555f'; mCtx.lineWidth=2.3; mCtx.stroke();
+  }
+}
+
+function mDrawAccessory(acc) {
+  if (acc === 'glasses') {
+    const eyeY = MHCY - 5;
+    const lx = MCX - 28, rx = MCX + 28;
+    // Tortoise shell frame
+    const lG = mCtx.createLinearGradient(lx-15, eyeY-9, lx-15, eyeY+9);
+    lG.addColorStop(0,'rgba(200,230,255,0.22)'); lG.addColorStop(1,'rgba(160,200,240,0.1)');
+    mCtx.beginPath(); mCtx.roundRect(lx-15, eyeY-10, 27, 20, 7);
+    mCtx.fillStyle=lG; mCtx.fill();
+    mCtx.beginPath(); mCtx.roundRect(rx-12, eyeY-10, 27, 20, 7);
+    mCtx.fillStyle=lG; mCtx.fill();
+    // Frame tortoise gradient
+    const fG = mCtx.createLinearGradient(lx-15,eyeY-10,rx+15,eyeY+10);
+    fG.addColorStop(0,'#8B5E2A'); fG.addColorStop(0.3,'#5C3A1E'); fG.addColorStop(0.7,'#7A4E28'); fG.addColorStop(1,'#8B5E2A');
+    mCtx.beginPath(); mCtx.roundRect(lx-15, eyeY-10, 27, 20, 7);
+    mCtx.strokeStyle=fG; mCtx.lineWidth=3; mCtx.stroke();
+    mCtx.beginPath(); mCtx.roundRect(rx-12, eyeY-10, 27, 20, 7); mCtx.stroke();
+    // Tortoise dots
+    mCtx.fillStyle='rgba(30,15,5,0.18)';
+    [[lx-9,eyeY-5,3],[lx-2,eyeY+3,2.5],[lx+5,eyeY-4,2.2],
+     [rx-4,eyeY-5,3],[rx+3,eyeY+3,2.5],[rx+9,eyeY-4,2.2]].forEach(([x,y,r]) => {
+      mCtx.beginPath(); mCtx.arc(x,y,r,0,Math.PI*2); mCtx.fill();
+    });
+    // Curved bridge
+    mCtx.beginPath();
+    mCtx.moveTo(lx+12, eyeY-1);
+    mCtx.bezierCurveTo(lx+15, eyeY-6, rx-15, eyeY-6, rx-12, eyeY-1);
+    mCtx.strokeStyle=fG; mCtx.lineWidth=2.4; mCtx.stroke();
+    // Temples
+    mCtx.strokeStyle='#6B4820'; mCtx.lineWidth=2.5; mCtx.lineCap='round';
+    mCtx.beginPath(); mCtx.moveTo(lx-15, eyeY-2);
+    mCtx.bezierCurveTo(lx-20, eyeY-2, lx-24, eyeY+3, lx-26, eyeY+7); mCtx.stroke();
+    mCtx.beginPath(); mCtx.moveTo(rx+15, eyeY-2);
+    mCtx.bezierCurveTo(rx+20, eyeY-2, rx+24, eyeY+3, rx+26, eyeY+7); mCtx.stroke();
+    // Lens glare
+    mCtx.beginPath(); mCtx.ellipse(lx-8, eyeY-5, 4, 2.5, -0.35, 0, Math.PI*2);
+    mCtx.fillStyle='rgba(255,255,255,0.38)'; mCtx.fill();
+    mCtx.beginPath(); mCtx.ellipse(rx+4, eyeY-5, 4, 2.5, -0.35, 0, Math.PI*2); mCtx.fill();
+
+  } else if (acc === 'ribbon') {
+    const RX = MCX + MHR - 14;
+    const RY = MHCY - MHR + 2;
+    // Shadow
+    mCtx.beginPath(); mCtx.ellipse(RX+1, RY+3, 18, 8, 0.2, 0, Math.PI*2);
+    mCtx.fillStyle='rgba(0,0,0,0.12)'; mCtx.fill();
+    // Wing gradient
+    const wG = mCtx.createRadialGradient(RX-5, RY-7, 1, RX, RY, 22);
+    wG.addColorStop(0,'#FFB0D8'); wG.addColorStop(0.5,'#FF6BB4'); wG.addColorStop(1,'#E0358A');
+    // Left wing
+    mCtx.beginPath();
+    mCtx.moveTo(RX, RY);
+    mCtx.bezierCurveTo(RX-5, RY-14, RX-19, RY-17, RX-14, RY-10);
+    mCtx.bezierCurveTo(RX-10, RY-5, RX-2, RY-2, RX, RY);
+    mCtx.fillStyle=wG; mCtx.fill();
+    mCtx.beginPath();
+    mCtx.moveTo(RX-1, RY-1);
+    mCtx.bezierCurveTo(RX-5, RY-12, RX-14, RY-14, RX-12, RY-8);
+    mCtx.strokeStyle='rgba(255,200,230,0.4)'; mCtx.lineWidth=1.4; mCtx.stroke();
+    // Right wing
+    mCtx.beginPath();
+    mCtx.moveTo(RX, RY);
+    mCtx.bezierCurveTo(RX+5, RY-14, RX+19, RY-17, RX+14, RY-10);
+    mCtx.bezierCurveTo(RX+10, RY-5, RX+2, RY-2, RX, RY);
+    mCtx.fillStyle=wG; mCtx.fill();
+    mCtx.beginPath();
+    mCtx.moveTo(RX+1, RY-1);
+    mCtx.bezierCurveTo(RX+5, RY-12, RX+14, RY-14, RX+12, RY-8);
+    mCtx.strokeStyle='rgba(255,200,230,0.4)'; mCtx.lineWidth=1.4; mCtx.stroke();
+    // Tail loops
+    mCtx.beginPath();
+    mCtx.moveTo(RX, RY); mCtx.bezierCurveTo(RX-7, RY+5, RX-12, RY+14, RX-7, RY+17);
+    mCtx.strokeStyle='#E0358A'; mCtx.lineWidth=3; mCtx.lineCap='round'; mCtx.stroke();
+    mCtx.beginPath();
+    mCtx.moveTo(RX, RY); mCtx.bezierCurveTo(RX+7, RY+5, RX+12, RY+14, RX+7, RY+17); mCtx.stroke();
+    // Center knot
+    const kG = mCtx.createRadialGradient(RX-2, RY-2, 1, RX, RY, 7);
+    kG.addColorStop(0,'#FFD4EC'); kG.addColorStop(0.5,'#FF6BB4'); kG.addColorStop(1,'#CC1870');
+    mCtx.beginPath(); mCtx.arc(RX, RY, 7, 0, Math.PI*2);
+    mCtx.fillStyle=kG; mCtx.fill();
+    mCtx.strokeStyle='rgba(180,0,80,0.3)'; mCtx.lineWidth=0.9; mCtx.stroke();
+    mCtx.beginPath(); mCtx.ellipse(RX-2.5, RY-2.5, 3, 2, -0.4, 0, Math.PI*2);
+    mCtx.fillStyle='rgba(255,255,255,0.5)'; mCtx.fill();
+
+  } else if (acc === 'flower') {
+    const FX = MCX + MHR - 10, FY = MHCY - MHR + 7;
+    // Shadow
+    mCtx.beginPath(); mCtx.ellipse(FX+1, FY+4, 14, 6, 0, 0, Math.PI*2);
+    mCtx.fillStyle='rgba(0,0,0,0.1)'; mCtx.fill();
+    // 8 petals
+    for (let i = 0; i < 8; i++) {
+      const a = i * Math.PI / 4;
+      const pG = mCtx.createRadialGradient(
+        FX+Math.cos(a)*6, FY+Math.sin(a)*6, 0,
+        FX+Math.cos(a)*12, FY+Math.sin(a)*12, 9
+      );
+      if (i%2===0) { pG.addColorStop(0,'#FFD6E0'); pG.addColorStop(1,'#FF8FAD'); }
+      else         { pG.addColorStop(0,'#FFB0CC'); pG.addColorStop(1,'#FF6B9D'); }
+      mCtx.beginPath();
+      mCtx.ellipse(FX+Math.cos(a)*11, FY+Math.sin(a)*11, 7.5, 4.5, a, 0, Math.PI*2);
+      mCtx.fillStyle=pG; mCtx.fill();
+    }
+    // Petal outline
+    for (let i = 0; i < 8; i++) {
+      const a = i * Math.PI / 4;
+      mCtx.beginPath();
+      mCtx.ellipse(FX+Math.cos(a)*11, FY+Math.sin(a)*11, 7.5, 4.5, a, 0, Math.PI*2);
+      mCtx.strokeStyle='rgba(220,80,120,0.2)'; mCtx.lineWidth=0.9; mCtx.stroke();
+    }
+    // Center stamen
+    const cG = mCtx.createRadialGradient(FX-1,FY-1,1,FX,FY,10);
+    cG.addColorStop(0,'#FFFDE7'); cG.addColorStop(0.5,'#FFD54F'); cG.addColorStop(1,'#F57F17');
+    mCtx.beginPath(); mCtx.arc(FX, FY, 10, 0, Math.PI*2);
+    mCtx.fillStyle=cG; mCtx.fill();
+    mCtx.strokeStyle='rgba(180,100,0,0.25)'; mCtx.lineWidth=0.9; mCtx.stroke();
+    mCtx.fillStyle='rgba(180,80,0,0.4)';
+    for(let i=0;i<6;i++) {
+      const a = i*Math.PI/3;
+      mCtx.beginPath(); mCtx.arc(FX+Math.cos(a)*5, FY+Math.sin(a)*5, 1.5, 0, Math.PI*2); mCtx.fill();
+    }
+    mCtx.beginPath(); mCtx.ellipse(FX-3, FY-3, 3.5, 2.5, -0.4, 0, Math.PI*2);
+    mCtx.fillStyle='rgba(255,255,255,0.5)'; mCtx.fill();
+  }
+}
+
+function mDrawEarrings() {
+  const ey = MHCY + 5;
+  const lx = MCX - MHR + 3, rx = MCX + MHR - 3;
+  [lx, rx].forEach((ex) => {
+    // Ear wire
+    mCtx.beginPath();
+    mCtx.moveTo(ex, ey-2); mCtx.lineTo(ex, ey+1);
+    mCtx.strokeStyle='#C8A000'; mCtx.lineWidth=1.9; mCtx.stroke();
+    // Stud gem
+    const sG = mCtx.createRadialGradient(ex-1.8,ey-1.8,0.6,ex,ey,6.5);
+    sG.addColorStop(0,'#FFF9C4'); sG.addColorStop(0.3,'#FFD700'); sG.addColorStop(0.7,'#FFA000'); sG.addColorStop(1,'#7B5800');
+    mCtx.beginPath(); mCtx.arc(ex, ey, 6, 0, Math.PI*2);
+    mCtx.fillStyle=sG; mCtx.fill();
+    mCtx.strokeStyle='#9A6F00'; mCtx.lineWidth=1; mCtx.stroke();
+    // Stud specular
+    mCtx.beginPath(); mCtx.ellipse(ex-1.8, ey-1.8, 2.5, 1.5, -0.5, 0, Math.PI*2);
+    mCtx.fillStyle='rgba(255,255,255,0.65)'; mCtx.fill();
+    // Drop link
+    mCtx.beginPath(); mCtx.moveTo(ex, ey+6); mCtx.lineTo(ex, ey+11);
+    mCtx.strokeStyle='#B8900A'; mCtx.lineWidth=1.7; mCtx.stroke();
+    // Drop gem
+    const dG = mCtx.createRadialGradient(ex-1.8,ey+12,0.6,ex,ey+15,6);
+    dG.addColorStop(0,'#FFF9C4'); dG.addColorStop(0.4,'#FFD700'); dG.addColorStop(0.8,'#FFA000'); dG.addColorStop(1,'#7B5800');
+    mCtx.beginPath(); mCtx.ellipse(ex, ey+16, 5.5, 6.5, 0, 0, Math.PI*2);
+    mCtx.fillStyle=dG; mCtx.fill();
+    mCtx.strokeStyle='#9A6F00'; mCtx.lineWidth=1; mCtx.stroke();
+    mCtx.beginPath(); mCtx.ellipse(ex-1.8, ey+12.5, 1.8, 2.5, -0.3, 0, Math.PI*2);
+    mCtx.fillStyle='rgba(255,255,255,0.55)'; mCtx.fill();
+  });
+}
+
+function mDrawSparkles() {
+  const stars=[[MCX-55,MHCY-44,10],[MCX+55,MHCY-36,8],[MCX-44,MHCY+46,7],[MCX+48,MHCY+38,9]];
+  stars.forEach(([x,y,r]) => {
+    mCtx.save(); mCtx.translate(x,y); mCtx.fillStyle='#FFD700';
+    mCtx.beginPath();
+    for(let i=0;i<5;i++) { mCtx.rotate(Math.PI*2/5); mCtx.lineTo(0,-r); mCtx.rotate(Math.PI*2/10); mCtx.lineTo(0,-r*0.4); }
+    mCtx.closePath(); mCtx.fill(); mCtx.restore();
+  });
+}
+
+// ===== Motion =====
+function startAvatarAnimation() {
+  if (animFrame) cancelAnimationFrame(animFrame);
+  const m = avatarState.motion || 'bounce';
+  if (m === 'none') { drawMainAvatar(); return; }
+  function tick() {
+    motionTime += 0.05;
+    let yOff=0, rot=0, sc=1;
+    if (m==='bounce') yOff = Math.sin(motionTime*2.5)*12;
+    else if (m==='wave') { yOff=Math.sin(motionTime*2)*5; rot=Math.sin(motionTime*3)*0.08; }
+    else if (m==='spin') rot = motionTime*0.05;
+    else if (m==='heartbeat') { sc = 1+Math.abs(Math.sin(motionTime*3))*0.12; }
+    else if (m==='tada') {
+      yOff=Math.sin(motionTime*4)*8; rot=Math.sin(motionTime*5)*0.1; sc=1+Math.abs(Math.sin(motionTime*4))*0.08;
+    }
+    drawMainAvatar(yOff, sc, rot);
+    animFrame = requestAnimationFrame(tick);
+  }
+  tick();
+}
+
+// ===== Reaction =====
+function selectReactionEmoji(emoji, el) {
+  selectedReactionEmoji = emoji;
+  document.querySelectorAll('.reaction-emoji-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+async function sendReaction() {
+  if (!selectedReactionEmoji) {
+    showToast('⚠️ リアクション絵文字を選んでください');
+    return;
+  }
+
+  const btn = document.getElementById('reactSendBtn');
+  btn.disabled = true;
+  btn.textContent = '送信中...';
+
+  const msg = document.getElementById('reactionMsg').value.trim();
+
+  try {
+    await fetch('tables/reactions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        order_id: orderData.id,
+        reaction_emoji: selectedReactionEmoji,
+        message: msg,
+        recipient_name: orderData.recipient_name || 'ゲスト'
+      })
+    });
+
+    // Update order status
+    try {
+      await fetch(`tables/orders/${orderData.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'reacted' })
+      });
+    } catch (e) {}
+
+  } catch (e) {}
+
+  // Show success regardless
+  document.getElementById('reactionForm').style.display = 'none';
+  const sentMsg = document.getElementById('reactionSentMsg');
+  document.getElementById('sentReactionIcon').textContent = selectedReactionEmoji;
+  sentMsg.classList.add('show');
+
+  launchConfetti(30);
+  showToast('💌 リアクションを送りました！');
+}
+
+// ===== Confetti =====
+function launchConfetti(count = 50) {
+  const colors = ['#FF6B9D','#A855F7','#FFD700','#FF8C42','#4CAF50','#64B5F6','#FF3B7A'];
+  for (let i = 0; i < count; i++) {
+    setTimeout(() => {
+      const p = document.createElement('div');
+      p.style.cssText = `
+        position: fixed;
+        left: ${Math.random() * 100}vw;
+        top: -10px;
+        width: ${5 + Math.random() * 8}px;
+        height: ${5 + Math.random() * 8}px;
+        background: ${colors[Math.floor(Math.random() * colors.length)]};
+        border-radius: ${Math.random() > 0.5 ? '50%' : '2px'};
+        z-index: 9999;
+        pointer-events: none;
+        animation: confettiFall ${2 + Math.random() * 2}s ${Math.random() * 0.5}s linear forwards;
+      `;
+      document.body.appendChild(p);
+      setTimeout(() => p.remove(), 4000);
+    }, i * 40);
+  }
+}
+
+function showError() {
+  document.getElementById('loadingState').style.display = 'none';
+  document.getElementById('errorState').classList.add('show');
+  document.getElementById('errorState').style.display = 'flex';
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ===== Init =====
+loadOrder();
+
+// ===================================================
+// GIFT CARD MODAL — BABYMONSTER POSTER STYLE
+// ===================================================
+
+/*
+ * 6 テーマ定義
+ * bg: [topLeft, topRight, centerFill, bottomAccent]
+ * style: 'light' | 'dark'  — 文字色制御
+ */
+const GC_THEMES = [
+  {
+    id: 'aurora',
+    label: 'オーロラ',
+    style: 'light-text',
+    bg: ['#b388ff','#82b1ff','#ce93d8','#f48fb1'],
+    accent: '#7c4dff',
+    textColor: 'rgba(255,255,255,0.95)',
+    subColor: 'rgba(255,255,255,0.7)',
+  },
+  {
+    id: 'sunset',
+    label: 'サンセット',
+    style: 'light-text',
+    bg: ['#ff6e7f','#bfe9ff','#ff9a8b','#fbc2eb'],
+    accent: '#ff4757',
+    textColor: 'rgba(255,255,255,0.95)',
+    subColor: 'rgba(255,255,255,0.7)',
+  },
+  {
+    id: 'ocean',
+    label: 'オーシャン',
+    style: 'light-text',
+    bg: ['#1a237e','#283593','#0288d1','#00acc1'],
+    accent: '#4fc3f7',
+    textColor: 'rgba(255,255,255,0.95)',
+    subColor: 'rgba(255,255,255,0.65)',
+  },
+  {
+    id: 'forest',
+    label: 'フォレスト',
+    style: 'light-text',
+    bg: ['#1b5e20','#2e7d32','#66bb6a','#a5d6a7'],
+    accent: '#69f0ae',
+    textColor: 'rgba(255,255,255,0.95)',
+    subColor: 'rgba(255,255,255,0.7)',
+  },
+  {
+    id: 'night',
+    label: 'ナイト',
+    style: 'light-text',
+    bg: ['#0a0015','#0d0025','#1a0035','#2d1254'],
+    accent: '#A855F7',
+    textColor: 'white',
+    subColor: 'rgba(200,180,255,0.75)',
+  },
+  {
+    id: 'gold',
+    label: 'ゴールド',
+    style: 'dark-text',
+    bg: ['#ff6f00','#f9a825','#ffd600','#ffab40'],
+    accent: '#ff6f00',
+    textColor: 'rgba(30,15,0,0.92)',
+    subColor: 'rgba(30,15,0,0.6)',
+  },
+];
+let gcCurrentTheme = 0;
+
+// ----------- Modal open/close -----------
+function openGiftCardModal() {
+  gcCurrentTheme = 0;
+  document.getElementById('gcOverlay').classList.add('open');
+  document.getElementById('gcSuccess').classList.remove('show');
+  document.getElementById('gcFormArea').style.display = 'flex';
+  document.getElementById('gcComment').value = '';
+  document.getElementById('gcAnonToggle').checked = false;
+  document.body.style.overflow = 'hidden';
+  // レンダー（少し遅らせてレイアウト確定後に描画）
+  setTimeout(() => {
+    renderGcThemeRow();
+    updateCardPreview();
+  }, 80);
+}
+
+function closeGiftCardModal() {
+  document.getElementById('gcOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function gcOverlayClick(e) {
+  if (e.target === document.getElementById('gcOverlay')) closeGiftCardModal();
+}
+
+// ----------- Theme chip row -----------
+function renderGcThemeRow() {
+  const row = document.getElementById('gcThemeRow');
+  row.innerHTML = GC_THEMES.map((t, i) => {
+    const g = `linear-gradient(135deg, ${t.bg[0]}, ${t.bg[2]}, ${t.bg[3]})`;
+    return `<div class="gc-theme-chip ${i === gcCurrentTheme ? 'active' : ''}"
+      style="background:${g}" title="${t.label}"
+      onclick="selectGcTheme(${i})">
+      <span class="chip-label">${t.label}</span>
+    </div>`;
+  }).join('');
+}
+
+function selectGcTheme(idx) {
+  gcCurrentTheme = idx;
+  renderGcThemeRow();
+  updateCardPreview();
+}
+
+// ----------- Card preview update -----------
+function updateCardPreview() {
+  if (!orderData) return;
+  const theme = GC_THEMES[gcCurrentTheme];
+  const isAnon = document.getElementById('gcAnonToggle') &&
+                 document.getElementById('gcAnonToggle').checked;
+
+  // --- Data ---
+  const giftName   = orderData.gift_name  || 'ギフト';
+  const giftEmoji  = orderData.gift_emoji || '🎁';
+  const senderName = isAnon ? '匿名さん' : (orderData.sender_name || 'だれか');
+  const now = new Date();
+  const yy = now.getFullYear();
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const dd = String(now.getDate()).padStart(2, '0');
+
+  // Headline: use emoji + short name
+  const headMain = giftName.length <= 7 ? giftName : giftName.slice(0, 6) + '…';
+
+  // DOM updates
+  document.getElementById('gscEyebrow').textContent    = '贈り物が届きました';
+  document.getElementById('gscHeadlineMain').textContent = headMain;
+  document.getElementById('gscHeadlineSub').textContent  = `✦ ${giftEmoji} もらいました ✦`;
+  document.getElementById('gscBigEmoji').textContent      = giftEmoji;
+  document.getElementById('gscGiftName').textContent      = giftName;
+  document.getElementById('gscSender').textContent        = senderName;
+  document.getElementById('gscDateYear').textContent      = String(yy);
+  document.getElementById('gscDateMain').textContent      = `${mm}/${dd}`;
+  document.getElementById('gscBrandBadge').textContent    = giftEmoji;
+
+  // Text color by theme
+  const tc  = theme.textColor;
+  const sub = theme.subColor;
+  document.getElementById('gscHeadlineMain').style.color  = tc;
+  document.getElementById('gscHeadlineSub').style.color   = sub;
+  document.getElementById('gscEyebrow').style.color       = sub;
+  document.getElementById('gscDateMain').style.color      = tc;
+
+  // Draw background
+  drawGcBg(theme);
+}
+
+// ----------- Canvas background (BABYMONSTER-style gradient + particles) -----------
+function drawGcBg(theme) {
+  const card   = document.getElementById('giftShareCard');
+  const canvas = document.getElementById('gscBgCanvas');
+  if (!canvas || !card) return;
+  const W = card.offsetWidth  || 280;
+  const H = card.offsetHeight || Math.round(W * 14 / 9);
+  canvas.width  = W;
+  canvas.height = H;
+  const ctx = canvas.getContext('2d');
+
+  // ---- Main gradient (4-stop diagonal) ----
+  const grad = ctx.createLinearGradient(0, 0, W * 0.8, H);
+  const [c0,c1,c2,c3] = theme.bg;
+  grad.addColorStop(0,    c0);
+  grad.addColorStop(0.38, c1);
+  grad.addColorStop(0.72, c2);
+  grad.addColorStop(1,    c3);
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, W, H);
+
+  // ---- Radial glow (upper right) ----
+  const glow = ctx.createRadialGradient(W*0.78, H*0.18, 0, W*0.78, H*0.18, W*0.65);
+  glow.addColorStop(0,   'rgba(255,255,255,0.28)');
+  glow.addColorStop(0.5, 'rgba(255,255,255,0.07)');
+  glow.addColorStop(1,   'rgba(255,255,255,0)');
+  ctx.fillStyle = glow;
+  ctx.fillRect(0, 0, W, H);
+
+  // ---- Radial glow (lower left) ----
+  const glow2 = ctx.createRadialGradient(W*0.2, H*0.8, 0, W*0.2, H*0.8, W*0.5);
+  glow2.addColorStop(0,   `${theme.accent}44`);
+  glow2.addColorStop(1,   'rgba(0,0,0,0)');
+  ctx.fillStyle = glow2;
+  ctx.fillRect(0, 0, W, H);
+
+  // ---- Scattered light particles ----
+  const seed = gcCurrentTheme * 1000;
+  for (let i = 0; i < 55; i++) {
+    const sx = ((seed*7 + i*83 + i*i*3) % 1000) / 1000 * W;
+    const sy = ((seed*13 + i*61 + i*i*7) % 1000) / 1000 * H;
+    const r  = 0.6 + ((seed*3 + i*17) % 100) / 100 * 2.8;
+    const a  = 0.08 + ((seed*11 + i*29) % 100) / 100 * 0.28;
+    ctx.beginPath();
+    ctx.arc(sx, sy, r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(255,255,255,${a})`;
+    ctx.fill();
+  }
+
+  // ---- Diagonal stripe texture (subtle) ----
+  ctx.save();
+  ctx.globalAlpha = 0.04;
+  for (let i = -H; i < W + H; i += 28) {
+    ctx.beginPath();
+    ctx.moveTo(i, 0);
+    ctx.lineTo(i + H, H);
+    ctx.lineWidth = 10;
+    ctx.strokeStyle = 'rgba(255,255,255,1)';
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+// ----------- High-res canvas for download/share -----------
+async function getCardDataUrl() {
+  const card    = document.getElementById('giftShareCard');
+  const W       = card.offsetWidth  || 280;
+  const H       = card.offsetHeight || Math.round(W * 14 / 9);
+  const SCALE   = 3;  // 3x retina
+  const canvas  = document.createElement('canvas');
+  canvas.width  = W * SCALE;
+  canvas.height = H * SCALE;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(SCALE, SCALE);
+
+  const theme = GC_THEMES[gcCurrentTheme];
+  const isAnon    = document.getElementById('gcAnonToggle').checked;
+  const giftName  = orderData ? orderData.gift_name  || 'ギフト' : 'ギフト';
+  const giftEmoji = orderData ? orderData.gift_emoji || '🎁'    : '🎁';
+  const senderName = isAnon ? '匿名さん' : (orderData ? orderData.sender_name || 'だれか' : 'だれか');
+  const now = new Date();
+  const yy  = now.getFullYear();
+  const mm  = String(now.getMonth()+1).padStart(2,'0');
+  const dd  = String(now.getDate()).padStart(2,'0');
+
+  /* ===== BACKGROUND ===== */
+  // Main diagonal gradient
+  const grad = ctx.createLinearGradient(0, 0, W*0.8, H);
+  const [c0,c1,c2,c3] = theme.bg;
+  grad.addColorStop(0, c0); grad.addColorStop(0.38, c1);
+  grad.addColorStop(0.72, c2); grad.addColorStop(1, c3);
+  ctx.fillStyle = grad;
+  ctx.beginPath(); _roundRect(ctx, 0, 0, W, H, 20); ctx.fill();
+
+  // Radial glows
+  const g1 = ctx.createRadialGradient(W*0.78, H*0.18, 0, W*0.78, H*0.18, W*0.65);
+  g1.addColorStop(0, 'rgba(255,255,255,0.28)');
+  g1.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = g1; ctx.beginPath(); _roundRect(ctx,0,0,W,H,20); ctx.fill();
+
+  const g2 = ctx.createRadialGradient(W*0.2, H*0.8, 0, W*0.2, H*0.8, W*0.5);
+  g2.addColorStop(0, `${theme.accent}44`); g2.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = g2; ctx.beginPath(); _roundRect(ctx,0,0,W,H,20); ctx.fill();
+
+  // Particles
+  const seed = gcCurrentTheme * 1000;
+  for (let i = 0; i < 55; i++) {
+    const sx = ((seed*7+i*83+i*i*3)%1000)/1000*W;
+    const sy = ((seed*13+i*61+i*i*7)%1000)/1000*H;
+    const r  = 0.6 + ((seed*3+i*17)%100)/100*2.8;
+    const a  = 0.08 + ((seed*11+i*29)%100)/100*0.28;
+    ctx.beginPath(); ctx.arc(sx, sy, r, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(255,255,255,${a})`; ctx.fill();
+  }
+
+  // Diagonal stripes
+  ctx.save(); ctx.globalAlpha = 0.04;
+  for (let i = -H; i < W+H; i += 28) {
+    ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i+H, H);
+    ctx.lineWidth = 10; ctx.strokeStyle = 'rgba(255,255,255,1)'; ctx.stroke();
+  }
+  ctx.restore();
+
+  /* ===== TOP DARKENING ===== */
+  const topDark = ctx.createLinearGradient(0,0,0,H*0.28);
+  topDark.addColorStop(0, 'rgba(0,0,0,0.22)');
+  topDark.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = topDark;
+  ctx.beginPath(); _roundRect(ctx,0,0,W,H*0.28,20); ctx.fill();
+
+  /* ===== BOTTOM GRADIENT ===== */
+  const botG = ctx.createLinearGradient(0, H*0.55, 0, H);
+  botG.addColorStop(0, 'rgba(0,0,0,0)');
+  botG.addColorStop(1, 'rgba(0,0,0,0.78)');
+  ctx.fillStyle = botG;
+  ctx.beginPath(); _roundRect(ctx,0,H*0.55,W,H*0.45,[0,0,20,20]); ctx.fill();
+
+  const tc  = theme.textColor;
+  const sub = theme.subColor;
+
+  /* ===== BRAND STRIP ===== */
+  ctx.textBaseline = 'middle';
+  ctx.textAlign    = 'left';
+  ctx.font = `800 ${Math.round(W*0.032)}px sans-serif`;
+  ctx.fillStyle = 'rgba(255,255,255,0.9)';
+  ctx.fillText('OKURIATO', 15, 22);
+  // badge
+  const bdgText = giftEmoji;
+  ctx.textAlign = 'right';
+  ctx.font = `700 ${Math.round(W*0.058)}px sans-serif`;
+  ctx.fillText(bdgText, W-14, 22);
+
+  /* ===== EYEBROW ===== */
+  ctx.textAlign  = 'center';
+  ctx.fillStyle  = sub;
+  ctx.font = `700 ${Math.round(W*0.03)}px sans-serif`;
+  ctx.fillText('贈り物が届きました', W/2, 54);
+
+  /* ===== HEADLINE MAIN ===== */
+  const headMain = giftName.length <= 7 ? giftName : giftName.slice(0,6)+'…';
+  ctx.fillStyle = tc;
+  ctx.font = `900 ${Math.min(Math.round(W*0.15), 54)}px sans-serif`;
+  ctx.fillText(headMain, W/2, 95);
+
+  /* ===== HEADLINE SUB ===== */
+  ctx.fillStyle = sub;
+  ctx.font = `700 ${Math.round(W*0.032)}px sans-serif`;
+  ctx.fillText(`✦ ${giftEmoji} もらいました ✦`, W/2, 118);
+
+  /* ===== BIG CENTER EMOJI ===== */
+  const emojiSize = Math.round(W * 0.35);
+  ctx.font = `${emojiSize}px sans-serif`;
+  ctx.fillText(giftEmoji, W/2, H*0.56);
+
+  /* ===== BOTTOM INFO ===== */
+  // Date block (JOOX style)
+  const bx = 16, by = H - 82;
+  // year (vertical)
+  ctx.save();
+  ctx.translate(bx, by + 30);
+  ctx.rotate(-Math.PI/2);
+  ctx.font = `700 ${Math.round(W*0.027)}px sans-serif`;
+  ctx.fillStyle = 'rgba(255,255,255,0.5)';
+  ctx.textAlign = 'center';
+  ctx.fillText(String(yy), 0, 0);
+  ctx.restore();
+  // vertical bar
+  ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(bx+18, by); ctx.lineTo(bx+18, by+46); ctx.stroke();
+  // date mm/dd
+  ctx.textAlign = 'left';
+  ctx.font = `900 ${Math.round(W*0.085)}px sans-serif`;
+  ctx.fillStyle = 'white';
+  ctx.fillText(`${mm}/${dd}`, bx+24, by+34);
+  // platform
+  ctx.font = `800 ${Math.round(W*0.033)}px sans-serif`;
+  ctx.fillStyle = 'rgba(255,255,255,0.6)';
+  ctx.fillText('OKURIATO', bx+24, by+52);
+
+  // Gift name
+  ctx.font = `800 ${Math.round(W*0.048)}px sans-serif`;
+  ctx.fillStyle = 'rgba(255,255,255,0.88)';
+  ctx.fillText(giftName, 16, H - 26);
+
+  // From line
+  ctx.font = `600 ${Math.round(W*0.036)}px sans-serif`;
+  ctx.fillStyle = 'rgba(255,255,255,0.55)';
+  ctx.fillText('from ', 16, H-10);
+  const fromW = ctx.measureText('from ').width;
+  ctx.fillStyle = 'rgba(255,220,80,0.9)';
+  ctx.font = `800 ${Math.round(W*0.036)}px sans-serif`;
+  ctx.fillText(senderName, 16 + fromW, H-10);
+
+  return canvas.toDataURL('image/png');
+}
+
+// Helper: roundRect fallback
+function _roundRect(ctx, x, y, w, h, r) {
+  if (typeof r === 'number') r = [r,r,r,r];
+  const [tl,tr,br,bl] = r.length === 4 ? r : [r[0],r[0],r[0],r[0]];
+  ctx.moveTo(x+tl, y);
+  ctx.lineTo(x+w-tr, y);
+  ctx.quadraticCurveTo(x+w, y, x+w, y+tr);
+  ctx.lineTo(x+w, y+h-br);
+  ctx.quadraticCurveTo(x+w, y+h, x+w-br, y+h);
+  ctx.lineTo(x+bl, y+h);
+  ctx.quadraticCurveTo(x, y+h, x, y+h-bl);
+  ctx.lineTo(x, y+tl);
+  ctx.quadraticCurveTo(x, y, x+tl, y);
+  ctx.closePath();
+}
+
+// ----------- Post to community -----------
+async function postGiftCard() {
+  const comment  = document.getElementById('gcComment').value.trim();
+  const isAnon   = document.getElementById('gcAnonToggle').checked;
+  const btn      = document.getElementById('gcPostBtn');
+  btn.disabled   = true;
+  btn.textContent = '画像を生成中...';
+
+  const posterName  = isAnon ? '匿名さん' : (orderData ? orderData.recipient_name || 'ゲスト' : 'ゲスト');
+  const cardDataUrl = await getCardDataUrl();
+
+  btn.textContent = '投稿中...';
+  try {
+    await fetch('tables/gift_posts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        order_id:     orderData ? orderData.id         : 'demo',
+        poster_name:  posterName,
+        is_anonymous: isAnon ? 1 : 0,
+        comment:      comment,
+        gift_name:    orderData ? orderData.gift_name  || '' : '',
+        gift_emoji:   orderData ? orderData.gift_emoji || '🎁' : '🎁',
+        sender_name:  isAnon ? '匿名さん' : (orderData ? orderData.sender_name || '' : ''),
+        card_theme:   GC_THEMES[gcCurrentTheme].id,
+        card_image:   cardDataUrl.slice(0, 8000),
+      })
+    });
+  } catch (e) { /* 投稿失敗してもUXを継続 */ }
+
+  document.getElementById('gcFormArea').style.display = 'none';
+  document.getElementById('gcSuccess').classList.add('show');
+  launchConfetti(40);
+  btn.disabled = false;
+  btn.innerHTML = '<i class="fas fa-paper-plane"></i> コミュニティに投稿する';
+}
+
+// ----------- X (Twitter) share -----------
+function shareToX() {
+  const isAnon     = document.getElementById('gcAnonToggle').checked;
+  const senderName = isAnon ? '匿名さん' : (orderData ? orderData.sender_name || 'だれか' : 'だれか');
+  const giftName   = orderData ? orderData.gift_name  || 'ギフト' : 'ギフト';
+  const giftEmoji  = orderData ? orderData.gift_emoji || '🎁'    : '🎁';
+  const pageUrl    = encodeURIComponent(window.location.href);
+  const text       = encodeURIComponent(
+    `${giftEmoji} ${senderName}さんから「${giftName}」をもらいました！\n#OKURIATO #ギフト`
+  );
+  window.open(`https://twitter.com/intent/tweet?text=${text}&url=${pageUrl}`, '_blank');
+}
+
+// ----------- Instagram: download PNG + toast -----------
+async function shareToInstagram() {
+  showToast('📥 画像を生成中...');
+  const dataUrl = await getCardDataUrl();
+  const a       = document.createElement('a');
+  a.href        = dataUrl;
+  a.download    = `gift-card-${GC_THEMES[gcCurrentTheme].id}.png`;
+  a.click();
+  showToast('✅ 画像を保存しました！Instagramに投稿してください📸');
+}
+
+// ----------- Copy URL -----------
+function copyShareUrl() {
+  const url = window.location.href;
+  navigator.clipboard.writeText(url).then(() => {
+    showToast('🔗 URLをコピーしました！');
+  }).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = url; ta.style.cssText = 'position:fixed;opacity:0;';
+    document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); ta.remove();
+    showToast('🔗 URLをコピーしました！');
+  });
+}
+
+// ESC でモーダルを閉じる
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeGiftCardModal();
+});
+</script>
+
+<script>
+
+
+
+</script>
+</body>
+</html>
