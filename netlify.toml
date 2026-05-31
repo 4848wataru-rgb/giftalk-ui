@@ -1,25 +1,6 @@
-# ================================================================
-# netlify.toml — Netlify デプロイ設定
-# ================================================================
-
 [build]
-  # 公開ディレクトリ（HTMLファイルがある場所）
   publish = "."
-
-  # Netlify Functionsのディレクトリ
   functions = "netlify/functions"
 
-# ── Functions のリダイレクト設定（任意） ──
-# フロントから '/api/chat' で呼びたい場合は下記を有効化
-# [[redirects]]
-#   from = "/api/chat"
-#   to   = "/.netlify/functions/chat"
-#   status = 200
-
-# ── セキュリティヘッダー（推奨） ──
-[[headers]]
-  for = "/*"
-  [headers.values]
-    X-Frame-Options = "DENY"
-    X-Content-Type-Options = "nosniff"
-    Referrer-Policy = "strict-origin-when-cross-origin"
+[functions]
+  node_bundler = "esbuild"

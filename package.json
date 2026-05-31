@@ -1,7 +1,8 @@
 {
-  "name": "okuriato-deploy",
-  "version": "1.0.0",
+  "name": "eraberu",
+  "private": true,
+  "type": "module",
   "dependencies": {
-    "dotenv": "^16.0.0"
+    "@netlify/blobs": "^8.1.0"
   }
 }
