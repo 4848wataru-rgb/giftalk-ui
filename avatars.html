@@ -1,0 +1,1612 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>アバター管理 - OKURIATO</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+  <style>
+    body { background: linear-gradient(135deg, #FFF0F8 0%, #F3E8FF 100%); min-height: 100vh; }
+
+    .page-wrapper {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 28px 20px 80px;
+    }
+
+    /* ===== Page Header ===== */
+    .page-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 28px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .page-heading-left h1 {
+      font-size: 1.5rem;
+      font-weight: 900;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .page-heading-left p {
+      color: var(--text-light);
+      font-size: 0.85rem;
+    }
+
+    /* ===== Tabs ===== */
+    .tabs {
+      display: flex;
+      gap: 4px;
+      background: #f0e8ff;
+      border-radius: 16px;
+      padding: 5px;
+      margin-bottom: 28px;
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 10px 16px;
+      border-radius: 12px;
+      border: none;
+      background: transparent;
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--text-light);
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .tab-btn.active {
+      background: white;
+      color: var(--primary);
+      box-shadow: 0 2px 8px rgba(255,107,157,0.18);
+    }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ===== Avatar Grid ===== */
+    .avatar-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 18px;
+    }
+
+    .demo-card { opacity: 0.7; }
+    .demo-card::after {
+      content: '例'; position: absolute; top: 8px; left: 8px;
+      background: #e0d4f7; color: #A855F7;
+      font-size: 0.65rem; font-weight: 800;
+      padding: 2px 7px; border-radius: 50px;
+    }
+    .avatar-card {
+      background: white;
+      border-radius: 22px;
+      box-shadow: 0 4px 16px rgba(168,85,247,0.1);
+      overflow: hidden;
+      transition: all 0.28s;
+      position: relative;
+      border: 2px solid transparent;
+    }
+    .avatar-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 32px rgba(168,85,247,0.18);
+      border-color: rgba(255,107,157,0.25);
+    }
+    .avatar-card.using {
+      border-color: var(--primary);
+      box-shadow: 0 4px 20px rgba(255,107,157,0.3);
+    }
+
+    .avatar-card-canvas-wrap {
+      background: linear-gradient(160deg, #FFF5FB 0%, #F5EEFF 100%);
+      padding: 16px 0 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+    .avatar-card-canvas-wrap canvas {
+      display: block;
+    }
+
+    .using-badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: var(--primary);
+      color: white;
+      font-size: 0.65rem;
+      font-weight: 800;
+      padding: 3px 10px;
+      border-radius: 50px;
+    }
+
+    .avatar-card-info {
+      padding: 12px 14px 14px;
+    }
+    .avatar-card-name {
+      font-size: 0.95rem;
+      font-weight: 900;
+      color: var(--text);
+      margin-bottom: 3px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .avatar-card-meta {
+      font-size: 0.72rem;
+      color: var(--text-light);
+      margin-bottom: 10px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .avatar-card-tag {
+      background: #f5f0ff;
+      color: var(--secondary);
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-weight: 700;
+    }
+
+    .avatar-card-actions {
+      display: flex;
+      gap: 6px;
+    }
+    .av-btn {
+      flex: 1;
+      padding: 7px 0;
+      border-radius: 10px;
+      border: none;
+      font-size: 0.76rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+    .av-btn-use {
+      background: linear-gradient(135deg, #FF6B9D, #A855F7);
+      color: white;
+    }
+    .av-btn-use:hover { opacity: 0.88; transform: translateY(-1px); }
+    .av-btn-edit {
+      background: #f5f0ff;
+      color: var(--secondary);
+    }
+    .av-btn-edit:hover { background: #ede5ff; }
+    .av-btn-delete {
+      background: #fff0f0;
+      color: #e05;
+      flex: 0 0 34px;
+      padding: 7px;
+    }
+    .av-btn-delete:hover { background: #ffe0e0; }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 60px 24px;
+      color: var(--text-light);
+    }
+    .empty-icon { font-size: 3.5rem; margin-bottom: 14px; }
+    .empty-title { font-size: 1.05rem; font-weight: 800; color: var(--text); margin-bottom: 6px; }
+    .empty-desc { font-size: 0.85rem; line-height: 1.7; }
+
+    /* Loading skeleton */
+    .skeleton-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 18px;
+    }
+    .skeleton-card {
+      background: white;
+      border-radius: 22px;
+      overflow: hidden;
+      animation: skelPulse 1.4s ease-in-out infinite;
+    }
+    .skel-top { height: 180px; background: #f5f0ff; }
+    .skel-body { padding: 12px 14px 14px; }
+    .skel-line { height: 14px; background: #eee; border-radius: 7px; margin-bottom: 8px; }
+    .skel-line.short { width: 60%; }
+    @keyframes skelPulse {
+      0%,100% { opacity: 1; }
+      50% { opacity: 0.55; }
+    }
+
+    /* ===== Create / Edit Form ===== */
+    .form-layout {
+      display: grid;
+      grid-template-columns: 1fr 240px;
+      gap: 24px;
+      align-items: start;
+    }
+    @media (max-width: 680px) {
+      .form-layout { grid-template-columns: 1fr; }
+    }
+
+    .custom-card {
+      background: white;
+      border-radius: 24px;
+      padding: 24px;
+      box-shadow: 0 4px 16px rgba(168,85,247,0.1);
+    }
+    .custom-section { margin-bottom: 24px; }
+    .custom-label {
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .option-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .opt-btn {
+      padding: 7px 14px;
+      border-radius: 50px;
+      border: 2px solid #eee;
+      background: white;
+      cursor: pointer;
+      font-size: 0.82rem;
+      font-weight: 700;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+    .opt-btn:hover { border-color: var(--primary); color: var(--primary); }
+    .opt-btn.active { border-color: var(--primary); color: var(--primary); background: #fff0f7; }
+
+    .color-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .color-swatch {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      border: 3px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    }
+    .color-swatch:hover { transform: scale(1.15); }
+    .color-swatch.active { border-color: var(--primary); transform: scale(1.15); }
+
+    .expr-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+    .expr-btn {
+      padding: 10px 6px;
+      border-radius: 14px;
+      border: 2px solid #eee;
+      background: white;
+      cursor: pointer;
+      font-size: 1.4rem;
+      transition: all 0.2s;
+      text-align: center;
+      font-family: inherit;
+    }
+    .expr-btn span { display: block; font-size: 0.62rem; color: var(--text-light); font-weight: 700; margin-top: 3px; }
+    .expr-btn:hover { transform: scale(1.05); border-color: var(--primary); }
+    .expr-btn.active { border-color: var(--primary); background: #fff0f7; box-shadow: 0 4px 12px rgba(255,107,157,0.2); }
+
+    .motion-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .motion-btn {
+      padding: 12px 8px;
+      border-radius: 14px;
+      border: 2px solid #eee;
+      background: white;
+      cursor: pointer;
+      font-size: 1.2rem;
+      transition: all 0.2s;
+      text-align: center;
+      font-family: inherit;
+    }
+    .motion-btn span { display: block; font-size: 0.62rem; color: var(--text-light); font-weight: 700; margin-top: 3px; }
+    .motion-btn:hover { border-color: var(--secondary); }
+    .motion-btn.active { border-color: var(--secondary); background: #f5ecff; box-shadow: 0 4px 12px rgba(168,85,247,0.2); }
+
+    .name-input {
+      width: 100%;
+      padding: 11px 16px;
+      border: 2px solid #eee;
+      border-radius: 50px;
+      font-size: 0.92rem;
+      outline: none;
+      transition: border-color 0.2s;
+      font-family: inherit;
+      box-sizing: border-box;
+    }
+    .name-input:focus { border-color: var(--primary); }
+
+    /* Preview sticky card */
+    .preview-card {
+      background: white;
+      border-radius: 24px;
+      padding: 24px;
+      box-shadow: 0 4px 16px rgba(168,85,247,0.1);
+      text-align: center;
+      position: sticky;
+      top: 80px;
+    }
+    .preview-title {
+      font-size: 0.78rem;
+      color: var(--text-light);
+      font-weight: 700;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .motion-label-sm { font-size: 0.75rem; color: var(--text-light); margin-top: 6px; }
+    .expr-display-sm { font-size: 1.4rem; margin-top: 4px; }
+
+    /* Form actions */
+    .form-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 24px;
+      flex-wrap: wrap;
+    }
+
+    /* Delete confirm modal */
+    .modal-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(6px);
+      z-index: 500;
+      align-items: center; justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-box {
+      background: white;
+      border-radius: 24px;
+      padding: 32px 28px;
+      max-width: 360px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.18);
+      animation: modalIn 0.3s cubic-bezier(0.34,1.56,0.64,1) both;
+    }
+    @keyframes modalIn {
+      from { opacity:0; transform:scale(0.8); }
+      to   { opacity:1; transform:scale(1); }
+    }
+    .modal-icon { font-size: 2.8rem; margin-bottom: 12px; }
+    .modal-title { font-size: 1.1rem; font-weight: 900; color: var(--text); margin-bottom: 8px; }
+    .modal-desc { font-size: 0.85rem; color: var(--text-light); line-height: 1.6; margin-bottom: 22px; }
+    .modal-actions { display: flex; gap: 10px; }
+    .modal-btn-cancel {
+      flex: 1; padding: 12px; border-radius: 50px;
+      border: 2px solid #eee; background: white;
+      font-weight: 700; cursor: pointer; font-family: inherit; font-size: 0.9rem;
+    }
+    .modal-btn-delete {
+      flex: 1; padding: 12px; border-radius: 50px;
+      border: none; background: #FF3B6E; color: white;
+      font-weight: 800; cursor: pointer; font-family: inherit; font-size: 0.9rem;
+    }
+    .modal-btn-cancel:hover { border-color: #ccc; }
+    .modal-btn-delete:hover { background: #e02060; }
+
+    /* Count badge */
+    .count-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 22px;
+      height: 22px;
+      padding: 0 6px;
+      background: var(--primary);
+      color: white;
+      border-radius: 50px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      margin-left: 6px;
+    }
+
+    /* Responsive */
+    @media (max-width: 767px) {
+      .page-wrapper { padding: 16px 14px 60px; }
+      .page-heading { font-size: 1.3rem; }
+
+      /* Tab bar */
+      .tab-bar-av { gap: 6px; }
+      .tab-btn-av { font-size: 0.82rem; padding: 9px 16px; }
+
+      /* Avatar grid */
+      .avatar-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+      .avatar-card { padding: 14px 10px; border-radius: 16px; }
+      .avatar-card canvas { width: 80px !important; height: 80px !important; }
+      .avatar-card-name { font-size: 0.82rem; }
+      .avatar-card-actions { flex-wrap: wrap; gap: 5px; justify-content: center; }
+      .avatar-card-actions button { font-size: 0.72rem; padding: 6px 10px; }
+
+      /* Form layout */
+      .form-layout { grid-template-columns: 1fr; }
+      .custom-card { padding: 18px 14px; }
+
+      /* Option rows */
+      .opt-row-av { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+      .opt-row-av::-webkit-scrollbar { display: none; }
+      .opt-btn-av { flex-shrink: 0; }
+    }
+    @media (max-width: 360px) {
+      .avatar-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <a href="index.html" class="logo">
+      
+      <span class="logo-text">OKURIATO</span>
+    </a>
+    <nav class="header-nav">
+      <a href="gift.html" class="btn btn-primary"><i class="fas fa-gift"></i> ギフトを贈る</a>
+      <a href="community.html" class="btn btn-outline"><i class="fas fa-users"></i> みんなの投稿</a>
+    </nav>
+    <button class="nav-hamburger" id="navHamburger" onclick="toggleDrawer()" aria-label="メニュー">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+<div class="nav-drawer" id="navDrawer">
+  <div class="nav-drawer-backdrop" onclick="closeDrawer()"></div>
+  <div class="nav-drawer-panel">
+    <a href="gift.html" class="nav-drawer-link primary"><i class="fas fa-gift"></i> ギフトを贈る</a>
+    <a href="community.html" class="nav-drawer-link"><i class="fas fa-users"></i> みんなの投稿</a>
+    <a href="giftalk.html" class="nav-drawer-link" style="color:var(--secondary);"><i class="fas fa-robot"></i> Giftalk</a>
+    <a href="reactions.html" class="nav-drawer-link"><i class="fas fa-bell"></i> リアクション</a>
+    <a href="index.html" class="nav-drawer-link"><i class="fas fa-home"></i> トップ</a>
+  </div>
+</div>
+
+<div class="page-wrapper">
+
+  <!-- Page Heading -->
+  <div class="page-heading">
+    <div class="page-heading-left">
+      <h1>🎭 アバター管理</h1>
+      <p>アバターをストックして、ギフトに使いまわせます</p>
+    </div>
+    <button class="btn btn-primary" onclick="switchTab('create')">
+      <i class="fas fa-plus"></i> 新しく作る
+    </button>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" id="tabMyAvatars" onclick="switchTab('list')">
+      <i class="fas fa-th"></i> マイアバター
+      <span class="count-badge" id="avatarCountBadge">0</span>
+    </button>
+    <button class="tab-btn" id="tabCreate" onclick="switchTab('create')">
+      <i class="fas fa-paint-brush"></i> 新しく作る / 編集
+    </button>
+  </div>
+
+  <!-- ===== Tab: List ===== -->
+  <div class="tab-panel active" id="panelList">
+    <!-- Loading skeleton -->
+    <div id="loadingSkeleton" class="skeleton-grid">
+      <div class="skeleton-card"><div class="skel-top"></div><div class="skel-body"><div class="skel-line"></div><div class="skel-line short"></div></div></div>
+      <div class="skeleton-card"><div class="skel-top"></div><div class="skel-body"><div class="skel-line"></div><div class="skel-line short"></div></div></div>
+      <div class="skeleton-card"><div class="skel-top"></div><div class="skel-body"><div class="skel-line"></div><div class="skel-line short"></div></div></div>
+    </div>
+    <!-- Avatar grid (JS populated) -->
+    <div class="avatar-grid" id="avatarGrid" style="display:none;"></div>
+    <!-- Empty state -->
+    <div class="empty-state" id="emptyState" style="display:none;">
+      <div class="empty-icon">🎭</div>
+      <div class="empty-title">アバターがまだありません</div>
+      <div class="empty-desc">「新しく作る」からアバターを作成してストックしましょう！</div>
+      <button class="btn btn-primary" style="margin-top:20px;" onclick="switchTab('create')">
+        <i class="fas fa-plus"></i> アバターを作る
+      </button>
+    </div>
+  </div>
+
+  <!-- ===== Tab: Create/Edit ===== -->
+  <div class="tab-panel" id="panelCreate">
+    <div class="form-layout">
+
+      <!-- Left: Customization -->
+      <div>
+        <div class="custom-card" id="editingBanner" style="display:none; margin-bottom:16px; background:linear-gradient(135deg,#fff0f7,#f5eeff); border:2px solid rgba(255,107,157,0.25);">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span style="font-size:1.4rem;">✏️</span>
+            <div>
+              <div style="font-weight:800; font-size:0.9rem; color:var(--text);">編集モード</div>
+              <div style="font-size:0.78rem; color:var(--text-light);" id="editingName">アバターを編集しています</div>
+            </div>
+            <button onclick="cancelEdit()" style="margin-left:auto; background:none; border:1px solid #ddd; border-radius:50px; padding:5px 12px; font-size:0.78rem; cursor:pointer; font-family:inherit; color:var(--text-light);">キャンセル</button>
+          </div>
+        </div>
+
+        <div class="custom-card">
+          <!-- Avatar Name -->
+          <div class="custom-section">
+            <div class="custom-label">🏷️ アバター名</div>
+            <input type="text" class="name-input" id="newAvatarName" placeholder="例：さくらちゃん" maxlength="12" oninput="updateNewPreview()">
+          </div>
+
+          <!-- Face Color -->
+          <div class="custom-section">
+            <div class="custom-label">🎨 肌の色</div>
+            <div class="color-row" id="newFaceColorRow">
+              <div class="color-swatch active" style="background:#FFDABB;" data-val="#FFDABB" onclick="setNew('faceColor','#FFDABB',this)"></div>
+              <div class="color-swatch" style="background:#F5C5A3;" data-val="#F5C5A3" onclick="setNew('faceColor','#F5C5A3',this)"></div>
+              <div class="color-swatch" style="background:#E8A87C;" data-val="#E8A87C" onclick="setNew('faceColor','#E8A87C',this)"></div>
+              <div class="color-swatch" style="background:#C68642;" data-val="#C68642" onclick="setNew('faceColor','#C68642',this)"></div>
+              <div class="color-swatch" style="background:#8D5524;" data-val="#8D5524" onclick="setNew('faceColor','#8D5524',this)"></div>
+            </div>
+          </div>
+
+          <!-- Hair Style -->
+          <div class="custom-section">
+            <div class="custom-label">💇 髪型</div>
+            <div class="option-row" id="newHairStyleRow">
+              <button class="opt-btn active" data-val="short" onclick="setNew('hairStyle','short',this)">ショート</button>
+              <button class="opt-btn" data-val="long" onclick="setNew('hairStyle','long',this)">ロング</button>
+              <button class="opt-btn" data-val="wavy" onclick="setNew('hairStyle','wavy',this)">ウェーブ</button>
+              <button class="opt-btn" data-val="bun" onclick="setNew('hairStyle','bun',this)">お団子</button>
+              <button class="opt-btn" data-val="hat" onclick="setNew('hairStyle','hat',this)">帽子</button>
+            </div>
+          </div>
+
+          <!-- Hair Color -->
+          <div class="custom-section">
+            <div class="custom-label">🎨 髪の色</div>
+            <div class="color-row" id="newHairColorRow">
+              <div class="color-swatch active" style="background:#3D2B1F;" data-val="#3D2B1F" onclick="setNew('hairColor','#3D2B1F',this)"></div>
+              <div class="color-swatch" style="background:#6B4226;" data-val="#6B4226" onclick="setNew('hairColor','#6B4226',this)"></div>
+              <div class="color-swatch" style="background:#D4A056;" data-val="#D4A056" onclick="setNew('hairColor','#D4A056',this)"></div>
+              <div class="color-swatch" style="background:#F4D1D1;" data-val="#F4D1D1" onclick="setNew('hairColor','#F4D1D1',this)"></div>
+              <div class="color-swatch" style="background:#7B7FCD;" data-val="#7B7FCD" onclick="setNew('hairColor','#7B7FCD',this)"></div>
+              <div class="color-swatch" style="background:#E0E0E0;" data-val="#E0E0E0" onclick="setNew('hairColor','#E0E0E0',this)"></div>
+            </div>
+          </div>
+
+          <!-- Eye Style -->
+          <div class="custom-section">
+            <div class="custom-label">👁️ 目の形</div>
+            <div class="option-row" id="newEyeStyleRow">
+              <button class="opt-btn active" data-val="normal" onclick="setNew('eyeStyle','normal',this)">🔵 ふつう</button>
+              <button class="opt-btn" data-val="sparkle" onclick="setNew('eyeStyle','sparkle',this)">✨ キラキラ</button>
+              <button class="opt-btn" data-val="happy" onclick="setNew('eyeStyle','happy',this)">😊 にっこり</button>
+              <button class="opt-btn" data-val="sleepy" onclick="setNew('eyeStyle','sleepy',this)">😴 たれ目</button>
+            </div>
+          </div>
+
+          <!-- Accessory -->
+          <div class="custom-section">
+            <div class="custom-label">💎 アクセサリー</div>
+            <div class="option-row" id="newAccessoryRow">
+              <button class="opt-btn active" data-val="none" onclick="setNew('accessory','none',this)">なし</button>
+              <button class="opt-btn" data-val="glasses" onclick="setNew('accessory','glasses',this)">👓 メガネ</button>
+              <button class="opt-btn" data-val="ribbon" onclick="setNew('accessory','ribbon',this)">🎀 リボン</button>
+              <button class="opt-btn" data-val="earring" onclick="setNew('accessory','earring',this)">💎 イヤリング</button>
+              <button class="opt-btn" data-val="flower" onclick="setNew('accessory','flower',this)">🌸 お花</button>
+            </div>
+          </div>
+
+          <!-- Outfit -->
+          <div class="custom-section">
+            <div class="custom-label">👗 服装</div>
+            <div class="option-row" id="newOutfitRow">
+              <button class="opt-btn active" data-val="casual" onclick="setNew('outfit','casual',this)">👕 カジュアル</button>
+              <button class="opt-btn" data-val="formal" onclick="setNew('outfit','formal',this)">👔 フォーマル</button>
+              <button class="opt-btn" data-val="dress" onclick="setNew('outfit','dress',this)">👗 ドレス</button>
+              <button class="opt-btn" data-val="yukata" onclick="setNew('outfit','yukata',this)">👘 浴衣</button>
+            </div>
+          </div>
+
+          <!-- Expression -->
+          <div class="custom-section">
+            <div class="custom-label">😊 表情</div>
+            <div class="expr-grid">
+              <button class="expr-btn active" data-val="happy"     onclick="setNewExpr('happy',this)">😄<span>うれしい</span></button>
+              <button class="expr-btn" data-val="love"      onclick="setNewExpr('love',this)">🥰<span>愛してる</span></button>
+              <button class="expr-btn" data-val="thanks"    onclick="setNewExpr('thanks',this)">🙏<span>感謝</span></button>
+              <button class="expr-btn" data-val="cool"      onclick="setNewExpr('cool',this)">😎<span>クール</span></button>
+              <button class="expr-btn" data-val="excited"   onclick="setNewExpr('excited',this)">🤩<span>感激</span></button>
+              <button class="expr-btn" data-val="shy"       onclick="setNewExpr('shy',this)">😊<span>恥ずかしい</span></button>
+              <button class="expr-btn" data-val="celebrate" onclick="setNewExpr('celebrate',this)">🎉<span>お祝い</span></button>
+              <button class="expr-btn" data-val="cheer"     onclick="setNewExpr('cheer',this)">💪<span>応援</span></button>
+            </div>
+          </div>
+
+          <!-- Motion -->
+          <div class="custom-section" style="margin-bottom:0;">
+            <div class="custom-label">💃 モーション</div>
+            <div class="motion-grid">
+              <button class="motion-btn active" data-val="bounce"    onclick="setNewMotion('bounce',this)">🦋<span>ジャンプ</span></button>
+              <button class="motion-btn" data-val="wave"      onclick="setNewMotion('wave',this)">👋<span>手を振る</span></button>
+              <button class="motion-btn" data-val="spin"      onclick="setNewMotion('spin',this)">🌀<span>くるくる</span></button>
+              <button class="motion-btn" data-val="heartbeat" onclick="setNewMotion('heartbeat',this)">💓<span>ドキドキ</span></button>
+              <button class="motion-btn" data-val="tada"      onclick="setNewMotion('tada',this)">🎊<span>やったー</span></button>
+              <button class="motion-btn" data-val="none"      onclick="setNewMotion('none',this)">🧘<span>静止</span></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="form-actions">
+          <button class="btn btn-primary" style="flex:2; justify-content:center;" onclick="saveAvatar()">
+            <i class="fas fa-save"></i> <span id="saveBtnLabel">ストックに保存</span>
+          </button>
+          <button class="btn btn-outline" style="flex:1; justify-content:center;" onclick="resetForm()">
+            <i class="fas fa-redo"></i> リセット
+          </button>
+        </div>
+      </div>
+
+      <!-- Right: Preview -->
+      <div>
+        <div class="preview-card">
+          <div class="preview-title">プレビュー</div>
+          <div style="position:relative; width:180px; height:180px; margin:0 auto 8px;">
+            <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:160px;height:160px;border-radius:50%;background:radial-gradient(ellipse,rgba(255,107,157,0.15) 0%,transparent 70%);pointer-events:none;"></div>
+            <canvas id="newAvatarCanvas" width="180" height="180" style="display:block;position:relative;z-index:1;filter:drop-shadow(0 2px 8px rgba(255,107,157,0.2));"></canvas>
+          </div>
+          <div id="newAvatarNameDisplay" style="font-weight:800; font-size:1rem; margin-bottom:4px; color:var(--text);">アバター</div>
+          <div class="expr-display-sm" id="newExprDisplay">😄</div>
+          <div class="motion-label-sm" id="newMotionLabel">ジャンプ中</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Delete Confirm Modal -->
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal-box">
+    <div class="modal-icon">🗑️</div>
+    <div class="modal-title">アバターを削除しますか？</div>
+    <div class="modal-desc" id="deleteModalDesc">このアバターを削除します。この操作は取り消せません。</div>
+    <div class="modal-actions">
+      <button class="modal-btn-cancel" onclick="closeDeleteModal()">キャンセル</button>
+      <button class="modal-btn-delete" onclick="confirmDelete()"><i class="fas fa-trash"></i> 削除する</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== State =====
+const senderId = getSenderId();
+let allAvatars = [];
+let editingAvatarId = null;
+let deleteTargetId = null;
+let newAnimFrame = null;
+let newMotionTime = 0;
+const cardCanvases = {}; // id -> {canvas, animFrame, motionTime}
+
+const EXPR_EMOJI = {
+  happy:'😄', love:'🥰', thanks:'🙏', cool:'😎',
+  excited:'🤩', shy:'😊', celebrate:'🎉', cheer:'💪'
+};
+const MOTION_LABEL = {
+  bounce:'ジャンプ中', wave:'手を振ってる', spin:'くるくる',
+  heartbeat:'ドキドキ', tada:'やったー！', none:'おすまし'
+};
+
+// Form state
+const newState = {
+  faceColor:'#FFDABB', hairStyle:'short', hairColor:'#3D2B1F',
+  eyeStyle:'normal', accessory:'none', outfit:'casual',
+  expression:'happy', motion:'bounce'
+};
+
+// ===== Sender ID =====
+function getSenderId() {
+  let id = localStorage.getItem('obt_sender_id');
+  if (!id) {
+    id = 'sender_' + Date.now() + '_' + Math.random().toString(36).substr(2,6);
+    localStorage.setItem('obt_sender_id', id);
+  }
+  return id;
+}
+
+// ===== Tab switching =====
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  if (tab === 'list') {
+    document.getElementById('tabMyAvatars').classList.add('active');
+    document.getElementById('panelList').classList.add('active');
+  } else {
+    document.getElementById('tabCreate').classList.add('active');
+    document.getElementById('panelCreate').classList.add('active');
+    startNewPreview();
+  }
+}
+
+// ===== デモアバター例 =====
+const DEMO_AVATARS = [
+  { id:'demo1', name:'さくら', skin:'light', hair_color:'#8B4513', hair_style:'long', outfit:'dress', expression:'happy', motion:'bounce', isDemo:true, created_at: new Date(Date.now()-86400000).toISOString() },
+  { id:'demo2', name:'たろう', skin:'medium', hair_color:'#1a1a1a', hair_style:'short', outfit:'casual', expression:'cool', motion:'wave', isDemo:true, created_at: new Date(Date.now()-172800000).toISOString() },
+  { id:'demo3', name:'みらい', skin:'light', hair_color:'#FFD700', hair_style:'wavy', outfit:'casual', expression:'excited', motion:'spin', isDemo:true, created_at: new Date(Date.now()-259200000).toISOString() },
+];
+
+// ===== Load Avatars =====
+async function loadAvatars() {
+  try {
+    const res = await fetch(`tables/avatars?sort=created_at&limit=100`);
+    const data = await res.json();
+    const myAvatars = (data.data || []).filter(a => a.sender_id === senderId);
+    allAvatars = myAvatars.length > 0 ? myAvatars : DEMO_AVATARS;
+    renderAvatarGrid();
+  } catch(e) {
+    allAvatars = DEMO_AVATARS;
+    renderAvatarGrid();
+  }
+}
+
+function renderAvatarGrid() {
+  document.getElementById('loadingSkeleton').style.display = 'none';
+  const grid = document.getElementById('avatarGrid');
+  const empty = document.getElementById('emptyState');
+  const badge = document.getElementById('avatarCountBadge');
+  badge.textContent = allAvatars.length;
+
+  // Stop all card animations
+  Object.values(cardCanvases).forEach(c => { if(c.animFrame) cancelAnimationFrame(c.animFrame); });
+
+  if (allAvatars.length === 0) {
+    grid.style.display = 'none';
+    empty.style.display = 'block';
+    return;
+  }
+
+  empty.style.display = 'none';
+  grid.style.display = 'grid';
+  grid.innerHTML = '';
+
+  allAvatars.forEach(av => {
+    const card = document.createElement('div');
+    card.className = 'avatar-card' + (av.isDemo ? ' demo-card' : '');
+    card.id = 'avcard_' + av.id;
+
+    const exprEmoji = EXPR_EMOJI[av.expression] || '😊';
+    const motionLbl = MOTION_LABEL[av.motion] || 'おすまし';
+    const hairLabel = {short:'ショート',long:'ロング',wavy:'ウェーブ',bun:'お団子',hat:'帽子'}[av.hair_style] || av.hair_style;
+    const outfitLabel = {casual:'カジュアル',formal:'フォーマル',dress:'ドレス',yukata:'浴衣'}[av.outfit] || av.outfit;
+    const createdAt = av.created_at ? new Date(av.created_at).toLocaleDateString('ja-JP',{month:'short',day:'numeric'}) : '';
+
+    card.innerHTML = `
+      <div class="avatar-card-canvas-wrap">
+        <canvas id="canvas_${av.id}" width="140" height="140" style="width:140px;height:140px;"></canvas>
+      </div>
+      <div class="avatar-card-info">
+        <div class="avatar-card-name" title="${av.name || 'アバター'}">${av.name || 'アバター'}</div>
+        <div class="avatar-card-meta">
+          <span class="avatar-card-tag">${exprEmoji} ${av.expression || 'happy'}</span>
+          <span class="avatar-card-tag">💃 ${motionLbl}</span>
+          <span style="color:#bbb;">${createdAt}</span>
+        </div>
+        <div class="avatar-card-actions">
+          <button class="av-btn av-btn-use" data-id="${av.id}" onclick="useAvatar(this.dataset.id)">
+            <i class="fas fa-gift"></i> 使う
+          </button>
+          <button class="av-btn av-btn-edit" data-id="${av.id}" onclick="editAvatar(this.dataset.id)">
+            <i class="fas fa-edit"></i> 編集
+          </button>
+          <button class="av-btn av-btn-delete" data-id="${av.id}" data-name="${(av.name||'アバター').replace(/"/g,'&quot;')}" onclick="openDeleteModal(this.dataset.id, this.dataset.name)">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      </div>
+    `;
+    grid.appendChild(card);
+
+    // Start canvas animation for this card
+    startCardAnimation(av);
+  });
+}
+
+// ===== High-Quality Avatar Drawing Engine (shared with avatar.html) =====
+
+// ---- Utility ----
+function _darken(hex, amount) {
+  let c = parseInt(hex.replace('#',''), 16);
+  let r = Math.max(0, ((c>>16)&0xff) - Math.round(255*amount));
+  let g = Math.max(0, ((c>>8)&0xff) - Math.round(255*amount));
+  let b = Math.max(0, (c&0xff) - Math.round(255*amount));
+  return `rgb(${r},${g},${b})`;
+}
+function _lighten(hex, amount) {
+  let c = parseInt(hex.replace('#',''), 16);
+  let r = Math.min(255, ((c>>16)&0xff) + Math.round(255*amount));
+  let g = Math.min(255, ((c>>8)&0xff) + Math.round(255*amount));
+  let b = Math.min(255, (c&0xff) + Math.round(255*amount));
+  return `rgb(${r},${g},${b})`;
+}
+function _hairGrd(ctx2, hc, x1,y1,x2,y2) {
+  const g = ctx2.createLinearGradient(x1,y1,x2,y2);
+  g.addColorStop(0, _lighten(hc,0.14));
+  g.addColorStop(0.45, hc);
+  g.addColorStop(1, _darken(hc,0.18));
+  return g;
+}
+function _heartPath2(ctx2, x, y, s) {
+  ctx2.beginPath();
+  ctx2.moveTo(x, y+s*0.3);
+  ctx2.bezierCurveTo(x, y-s*0.3, x-s, y-s*0.3, x-s, y+s*0.3);
+  ctx2.bezierCurveTo(x-s, y+s*0.85, x, y+s*1.2, x, y+s*1.2);
+  ctx2.bezierCurveTo(x, y+s*1.2, x+s, y+s*0.85, x+s, y+s*0.3);
+  ctx2.bezierCurveTo(x+s, y-s*0.3, x, y-s*0.3, x, y+s*0.3);
+}
+
+// ---- Full quality draw on an arbitrary ctx (200x240 native coords) ----
+function _drawFullAvatar(ctx2, s) {
+  // s: { faceColor, hairStyle, hairColor, eyeStyle, accessory, outfit, expression }
+  const CX=100, CH=240;
+  const HEAD_CY=88, HEAD_R=44;
+  const NECK_T=HEAD_CY+HEAD_R-10;
+  const BODY_T=NECK_T+14;
+
+  // Shadow
+  const shadowGrd = ctx2.createRadialGradient(CX,CH-18,4,CX,CH-18,38);
+  shadowGrd.addColorStop(0,'rgba(0,0,0,0.13)');
+  shadowGrd.addColorStop(1,'rgba(0,0,0,0)');
+  ctx2.beginPath(); ctx2.ellipse(CX,CH-18,38,12,0,0,Math.PI*2);
+  ctx2.fillStyle=shadowGrd; ctx2.fill();
+
+  // Body
+  _drawBody2(ctx2,s,CX,HEAD_CY,HEAD_R,NECK_T,BODY_T);
+
+  // Neck
+  const neckGrd = ctx2.createLinearGradient(CX-10,NECK_T,CX+10,NECK_T+16);
+  neckGrd.addColorStop(0,s.faceColor); neckGrd.addColorStop(1,_darken(s.faceColor,0.08));
+  ctx2.beginPath();
+  ctx2.moveTo(CX-9,NECK_T); ctx2.bezierCurveTo(CX-10,NECK_T+8,CX-8,NECK_T+16,CX-7,NECK_T+18);
+  ctx2.lineTo(CX+7,NECK_T+18); ctx2.bezierCurveTo(CX+8,NECK_T+16,CX+10,NECK_T+8,CX+9,NECK_T);
+  ctx2.closePath(); ctx2.fillStyle=neckGrd; ctx2.fill();
+
+  // Hair back
+  _drawHairBack2(ctx2,s.hairStyle,s.hairColor,CX,HEAD_CY,HEAD_R,BODY_T);
+
+  // Head
+  _drawHead2(ctx2,s.faceColor,CX,HEAD_CY,HEAD_R);
+
+  // Ears
+  ctx2.beginPath(); ctx2.ellipse(CX-HEAD_R+1,HEAD_CY+6,7,10,-0.1,0,Math.PI*2);
+  ctx2.fillStyle=s.faceColor; ctx2.fill();
+  ctx2.beginPath(); ctx2.ellipse(CX+HEAD_R-1,HEAD_CY+6,7,10,0.1,0,Math.PI*2);
+  ctx2.fillStyle=s.faceColor; ctx2.fill();
+
+  // Earring (behind hair)
+  if (s.accessory==='earring') _drawEarrings2(ctx2,CX,HEAD_CY,HEAD_R);
+
+  // Hair front
+  _drawHairFront2(ctx2,s.hairStyle,s.hairColor,CX,HEAD_CY,HEAD_R);
+
+  // Eyebrows
+  _drawEyebrows2(ctx2,s.expression,s.hairColor,CX,HEAD_CY);
+
+  // Eyes
+  _drawEyes2(ctx2,s.eyeStyle,s.expression,s.faceColor,CX,HEAD_CY);
+
+  // Nose
+  const ny=HEAD_CY+14;
+  ctx2.beginPath(); ctx2.moveTo(CX-3,ny); ctx2.quadraticCurveTo(CX,ny+4,CX+3,ny);
+  ctx2.strokeStyle=_darken(s.faceColor,0.22); ctx2.lineWidth=1.5; ctx2.lineCap='round'; ctx2.stroke();
+
+  // Mouth
+  _drawMouth2(ctx2,s.expression,CX,HEAD_CY);
+
+  // Cheeks
+  if(['love','shy','happy','celebrate','cheer'].includes(s.expression)){
+    ctx2.beginPath(); ctx2.ellipse(CX-28,HEAD_CY+18,10,6,-0.15,0,Math.PI*2);
+    ctx2.fillStyle='rgba(255,130,130,0.28)'; ctx2.fill();
+    ctx2.beginPath(); ctx2.ellipse(CX+28,HEAD_CY+18,10,6,0.15,0,Math.PI*2);
+    ctx2.fillStyle='rgba(255,130,130,0.28)'; ctx2.fill();
+  }
+
+  // Non-earring accessories
+  if(s.accessory!=='earring') _drawAccessory2(ctx2,s.accessory,CX,HEAD_CY,HEAD_R);
+
+  // Sparkles
+  if(['excited','celebrate'].includes(s.expression)) _drawSparkles2(ctx2,CX,HEAD_CY);
+}
+
+function _drawBody2(ctx2,s,CX,HEAD_CY,HEAD_R,NECK_T,BODY_T) {
+  const configs={
+    casual:{top:'#5BA4CF',bot:'#3A7FBF'},
+    formal:{top:'#3A4A6B',bot:'#2A3555'},
+    dress:{top:'#FF7BAC',bot:'#E0508A'},
+    yukata:{top:'#5C8A6E',bot:'#3D6B50'},
+  };
+  const cfg=configs[s.outfit]||configs.casual;
+  const bodyGrd=ctx2.createLinearGradient(CX-40,BODY_T,CX+40,BODY_T+70);
+  bodyGrd.addColorStop(0,cfg.top); bodyGrd.addColorStop(1,cfg.bot);
+  ctx2.beginPath();
+  ctx2.moveTo(CX-36,BODY_T+4); ctx2.quadraticCurveTo(CX-42,BODY_T,CX-30,BODY_T);
+  ctx2.lineTo(CX+30,BODY_T); ctx2.quadraticCurveTo(CX+42,BODY_T,CX+36,BODY_T+4);
+  ctx2.lineTo(CX+38,BODY_T+55); ctx2.quadraticCurveTo(CX+36,BODY_T+72,CX+20,BODY_T+74);
+  ctx2.lineTo(CX-20,BODY_T+74); ctx2.quadraticCurveTo(CX-36,BODY_T+72,CX-38,BODY_T+55);
+  ctx2.closePath(); ctx2.fillStyle=bodyGrd; ctx2.fill();
+
+  // Arms
+  const armGrd=ctx2.createLinearGradient(CX-55,BODY_T+10,CX-45,BODY_T+60);
+  armGrd.addColorStop(0,cfg.top); armGrd.addColorStop(1,_darken(cfg.top,0.15));
+  ctx2.beginPath();
+  ctx2.moveTo(CX-32,BODY_T+4); ctx2.bezierCurveTo(CX-48,BODY_T+6,CX-56,BODY_T+30,CX-52,BODY_T+54);
+  ctx2.bezierCurveTo(CX-50,BODY_T+62,CX-40,BODY_T+62,CX-38,BODY_T+54);
+  ctx2.bezierCurveTo(CX-36,BODY_T+36,CX-32,BODY_T+16,CX-26,BODY_T+8);
+  ctx2.fillStyle=armGrd; ctx2.fill();
+  ctx2.beginPath(); ctx2.ellipse(CX-45,BODY_T+58,8,7,0.3,0,Math.PI*2);
+  ctx2.fillStyle=s.faceColor; ctx2.fill();
+  const armGrd2=ctx2.createLinearGradient(CX+55,BODY_T+10,CX+45,BODY_T+60);
+  armGrd2.addColorStop(0,cfg.top); armGrd2.addColorStop(1,_darken(cfg.top,0.15));
+  ctx2.beginPath();
+  ctx2.moveTo(CX+32,BODY_T+4); ctx2.bezierCurveTo(CX+48,BODY_T+6,CX+56,BODY_T+30,CX+52,BODY_T+54);
+  ctx2.bezierCurveTo(CX+50,BODY_T+62,CX+40,BODY_T+62,CX+38,BODY_T+54);
+  ctx2.bezierCurveTo(CX+36,BODY_T+36,CX+32,BODY_T+16,CX+26,BODY_T+8);
+  ctx2.fillStyle=armGrd2; ctx2.fill();
+  ctx2.beginPath(); ctx2.ellipse(CX+45,BODY_T+58,8,7,-0.3,0,Math.PI*2);
+  ctx2.fillStyle=s.faceColor; ctx2.fill();
+
+  // Outfit details (simplified)
+  if(s.outfit==='casual'){
+    ctx2.beginPath(); ctx2.moveTo(CX-20,BODY_T); ctx2.bezierCurveTo(CX-12,BODY_T+16,CX+12,BODY_T+16,CX+20,BODY_T);
+    ctx2.lineWidth=2.5; ctx2.strokeStyle='rgba(255,255,255,0.45)'; ctx2.stroke();
+  } else if(s.outfit==='formal'){
+    const placketG=ctx2.createLinearGradient(CX-10,BODY_T,CX+10,BODY_T+72);
+    placketG.addColorStop(0,'rgba(255,255,255,0.92)'); placketG.addColorStop(1,'rgba(240,240,248,0.88)');
+    ctx2.beginPath(); ctx2.moveTo(CX-11,BODY_T+2); ctx2.lineTo(CX-9,BODY_T+72); ctx2.lineTo(CX+9,BODY_T+72); ctx2.lineTo(CX+11,BODY_T+2); ctx2.closePath(); ctx2.fillStyle=placketG; ctx2.fill();
+    [14,26,38,50].forEach(dy=>{
+      ctx2.beginPath(); ctx2.arc(CX,BODY_T+dy,2.8,0,Math.PI*2); ctx2.fillStyle='#aaa'; ctx2.fill();
+    });
+    const tieG=ctx2.createLinearGradient(CX-6,BODY_T,CX+6,BODY_T+38);
+    tieG.addColorStop(0,'#E74C3C'); tieG.addColorStop(1,'#922B21');
+    ctx2.beginPath(); ctx2.moveTo(CX-5,BODY_T+2); ctx2.lineTo(CX+5,BODY_T+2); ctx2.lineTo(CX+7,BODY_T+20); ctx2.lineTo(CX,BODY_T+40); ctx2.lineTo(CX-7,BODY_T+20); ctx2.closePath(); ctx2.fillStyle=tieG; ctx2.fill();
+  } else if(s.outfit==='dress'){
+    ctx2.strokeStyle='rgba(255,255,255,0.45)'; ctx2.lineWidth=2.5;
+    ctx2.beginPath(); ctx2.moveTo(CX-26,BODY_T+2); ctx2.bezierCurveTo(CX-22,BODY_T+10,CX-8,BODY_T+14,CX,BODY_T+12); ctx2.bezierCurveTo(CX+8,BODY_T+14,CX+22,BODY_T+10,CX+26,BODY_T+2); ctx2.stroke();
+    const ribbonG=ctx2.createLinearGradient(CX-38,BODY_T+42,CX+38,BODY_T+48);
+    ribbonG.addColorStop(0,'rgba(255,255,255,0.08)'); ribbonG.addColorStop(0.5,'rgba(255,255,255,0.28)'); ribbonG.addColorStop(1,'rgba(255,255,255,0.08)');
+    ctx2.beginPath(); ctx2.ellipse(CX,BODY_T+45,36,5,0,0,Math.PI*2); ctx2.fillStyle=ribbonG; ctx2.fill();
+  } else if(s.outfit==='yukata'){
+    const colG=ctx2.createLinearGradient(CX-18,BODY_T,CX+18,BODY_T+24);
+    colG.addColorStop(0,'rgba(255,255,255,0.85)'); colG.addColorStop(1,'rgba(240,240,240,0.7)');
+    ctx2.beginPath(); ctx2.moveTo(CX+14,BODY_T); ctx2.lineTo(CX-4,BODY_T+22); ctx2.lineTo(CX-4,BODY_T+74); ctx2.lineTo(CX+2,BODY_T+74); ctx2.lineTo(CX+2,BODY_T+26); ctx2.lineTo(CX+18,BODY_T); ctx2.closePath(); ctx2.fillStyle=colG; ctx2.fill();
+    ctx2.beginPath(); ctx2.moveTo(CX-14,BODY_T); ctx2.lineTo(CX+2,BODY_T+20); ctx2.lineTo(CX+2,BODY_T+74); ctx2.lineTo(CX-2,BODY_T+74); ctx2.lineTo(CX-2,BODY_T+24); ctx2.lineTo(CX-18,BODY_T); ctx2.closePath(); ctx2.fillStyle='rgba(255,255,255,0.5)'; ctx2.fill();
+    const obiG=ctx2.createLinearGradient(CX-38,BODY_T+38,CX+38,BODY_T+56);
+    obiG.addColorStop(0,'#C8920A'); obiG.addColorStop(0.5,'#F0C030'); obiG.addColorStop(1,'#A07010');
+    ctx2.beginPath(); ctx2.moveTo(CX-38,BODY_T+38); ctx2.lineTo(CX+38,BODY_T+38); ctx2.lineTo(CX+36,BODY_T+56); ctx2.lineTo(CX-36,BODY_T+56); ctx2.closePath(); ctx2.fillStyle=obiG; ctx2.fill();
+  }
+}
+
+function _drawHead2(ctx2,fc,CX,HEAD_CY,HEAD_R) {
+  const HY=HEAD_CY, HR=HEAD_R;
+  ctx2.beginPath();
+  ctx2.moveTo(CX,HY-HR-2);
+  ctx2.bezierCurveTo(CX+HR+6,HY-HR+4,CX+HR+8,HY+4,CX+HR,HY+10);
+  ctx2.bezierCurveTo(CX+HR-4,HY+HR*0.7,CX+10,HY+HR+4,CX,HY+HR+6);
+  ctx2.bezierCurveTo(CX-10,HY+HR+4,CX-HR+4,HY+HR*0.7,CX-HR,HY+10);
+  ctx2.bezierCurveTo(CX-HR-8,HY+4,CX-HR-6,HY-HR+4,CX,HY-HR-2);
+  ctx2.closePath(); ctx2.fillStyle=fc; ctx2.fill();
+}
+
+function _drawHairBack2(ctx2,style,hc,CX,HEAD_CY,HEAD_R,BODY_T) {
+  const HY=HEAD_CY, HR=HEAD_R;
+  if(style==='short'){
+    const g=_hairGrd(ctx2,hc,CX-HR,HY-HR,CX+HR,HY+4);
+    ctx2.beginPath(); ctx2.moveTo(CX-HR-2,HY+6); ctx2.bezierCurveTo(CX-HR-4,HY-6,CX-HR+2,HY-HR-8,CX,HY-HR-6); ctx2.bezierCurveTo(CX+HR-2,HY-HR-8,CX+HR+4,HY-6,CX+HR+2,HY+6); ctx2.bezierCurveTo(CX+HR,HY+14,CX-HR,HY+14,CX-HR-2,HY+6); ctx2.fillStyle=g; ctx2.fill();
+  } else if(style==='long'){
+    const g=_hairGrd(ctx2,hc,CX-HR-12,HY,CX-HR+4,BODY_T+60);
+    ctx2.beginPath(); ctx2.moveTo(CX-HR+6,HY+16); ctx2.bezierCurveTo(CX-HR-8,HY+32,CX-HR-18,BODY_T+30,CX-HR-8,BODY_T+62); ctx2.bezierCurveTo(CX-HR,BODY_T+70,CX-14,BODY_T+68,CX-8,BODY_T+64); ctx2.bezierCurveTo(CX-6,HY+52,CX-HR+4,HY+28,CX-HR+6,HY+16); ctx2.fillStyle=g; ctx2.fill();
+    const g2=_hairGrd(ctx2,hc,CX+HR+12,HY,CX+HR-4,BODY_T+60);
+    ctx2.beginPath(); ctx2.moveTo(CX+HR-6,HY+16); ctx2.bezierCurveTo(CX+HR+8,HY+32,CX+HR+18,BODY_T+30,CX+HR+8,BODY_T+62); ctx2.bezierCurveTo(CX+HR,BODY_T+70,CX+14,BODY_T+68,CX+8,BODY_T+64); ctx2.bezierCurveTo(CX+6,HY+52,CX+HR-4,HY+28,CX+HR-6,HY+16); ctx2.fillStyle=g2; ctx2.fill();
+  } else if(style==='wavy'){
+    const g=_hairGrd(ctx2,hc,CX-HR-12,HY,CX+HR+12,BODY_T+50);
+    ctx2.beginPath(); ctx2.moveTo(CX-HR+2,HY+14); ctx2.bezierCurveTo(CX-HR-14,HY+34,CX-HR-12,BODY_T+34,CX-HR,BODY_T+54); ctx2.bezierCurveTo(CX-HR+18,BODY_T+62,CX-4,BODY_T+60,CX,BODY_T+57); ctx2.bezierCurveTo(CX+4,BODY_T+60,CX+HR-18,BODY_T+62,CX+HR,BODY_T+54); ctx2.bezierCurveTo(CX+HR+12,BODY_T+34,CX+HR+14,HY+34,CX+HR-2,HY+14); ctx2.arc(CX,HY-2,HR+2,0.22,Math.PI-0.22,true); ctx2.fillStyle=g; ctx2.fill();
+  } else if(style==='bun'){
+    const g=_hairGrd(ctx2,hc,CX-HR,HY-4,CX+HR,HY+12);
+    ctx2.beginPath(); ctx2.arc(CX,HY-2,HR+2,Math.PI*0.88,Math.PI*0.12,false); ctx2.arc(CX,HY,HR+1,0.14,Math.PI-0.14,false); ctx2.closePath(); ctx2.fillStyle=g; ctx2.fill();
+  } else if(style==='hat'){
+    const g=_hairGrd(ctx2,hc,CX-HR,HY,CX+HR,HY+8);
+    ctx2.beginPath(); ctx2.arc(CX,HY,HR+1,0.28,Math.PI-0.28,false); ctx2.arc(CX,HY+4,HR+1,Math.PI-0.28,0.28,true); ctx2.closePath(); ctx2.fillStyle=g; ctx2.fill();
+  }
+}
+
+function _drawHairFront2(ctx2,style,hc,CX,HEAD_CY,HEAD_R) {
+  const HY=HEAD_CY, HR=HEAD_R;
+  const hcD=_darken(hc,0.07);
+  if(style==='short'){
+    const g=_hairGrd(ctx2,hc,CX-HR,HY-HR-4,CX+HR,HY+4);
+    ctx2.beginPath(); ctx2.arc(CX,HY-8,HR+1,Math.PI*1.04,-0.06); ctx2.quadraticCurveTo(CX+HR+3,HY-4,CX+HR-1,HY+10); ctx2.arc(CX,HY,HR+0.5,0.22,Math.PI-0.22,true); ctx2.quadraticCurveTo(CX-HR-3,HY-4,CX-HR-1,HY-8); ctx2.closePath(); ctx2.fillStyle=g; ctx2.fill();
+    [[-20,-1,4,11,-0.06],[-12,-4,5,12,-0.04],[-3,-6,5,12,0],[6,-5,5,11,0.04],[15,-2,4,10,0.06]].forEach(([dx,dy,rw,rh,rot])=>{
+      ctx2.save(); ctx2.translate(CX+dx,HY-HR+5+dy); ctx2.rotate(rot);
+      ctx2.beginPath(); ctx2.moveTo(-rw,0); ctx2.bezierCurveTo(-rw,rh*0.5,-rw*0.4,rh,0,rh+2); ctx2.bezierCurveTo(rw*0.4,rh,rw,rh*0.5,rw,0); ctx2.bezierCurveTo(rw,-rh*0.3,-rw,-rh*0.3,-rw,0); ctx2.fillStyle=hcD; ctx2.fill(); ctx2.restore();
+    });
+  } else if(style==='long'){
+    const g=_hairGrd(ctx2,hc,CX-HR,HY-HR,CX+HR,HY);
+    ctx2.beginPath(); ctx2.arc(CX,HY-8,HR+1,Math.PI*1.07,-0.08); ctx2.arc(CX,HY,HR+0.5,-0.08,Math.PI+0.08,true); ctx2.closePath(); ctx2.fillStyle=g; ctx2.fill();
+    [[-22,1,5,14,-0.08],[-13,-3,5,13,-0.04],[-3,-6,5,14,0],[7,-4,5,13,0.04],[17,-1,5,12,0.07]].forEach(([dx,dy,rw,rh,rot])=>{
+      ctx2.save(); ctx2.translate(CX+dx,HY-HR+6+dy); ctx2.rotate(rot);
+      ctx2.beginPath(); ctx2.moveTo(-rw,0); ctx2.bezierCurveTo(-rw,rh*0.5,-rw*0.3,rh,0,rh+3); ctx2.bezierCurveTo(rw*0.3,rh,rw,rh*0.5,rw,0); ctx2.bezierCurveTo(rw,-rh*0.3,-rw,-rh*0.3,-rw,0); ctx2.fillStyle=hcD; ctx2.fill(); ctx2.restore();
+    });
+  } else if(style==='wavy'){
+    const g=_hairGrd(ctx2,hc,CX-HR,HY-HR,CX+HR,HY);
+    ctx2.beginPath(); ctx2.arc(CX,HY-6,HR+2,Math.PI*1.04,-0.07); ctx2.arc(CX,HY,HR+1,-0.07,Math.PI+0.07,true); ctx2.closePath(); ctx2.fillStyle=g; ctx2.fill();
+    [[-22,1,0.12],[-12,-3,0.08],[-1,-5,0],[11,-3,-0.08],[21,1,-0.12]].forEach(([dx,dy,wv])=>{
+      ctx2.save(); ctx2.translate(CX+dx,HY-HR+6+dy);
+      ctx2.beginPath(); ctx2.moveTo(-5,0); ctx2.bezierCurveTo(-6+wv*40,5,-5-wv*20,10,-4+wv*30,14); ctx2.bezierCurveTo(-3+wv*10,18,3-wv*10,18,4-wv*30,14); ctx2.bezierCurveTo(5+wv*20,10,6-wv*40,5,5,0); ctx2.bezierCurveTo(4,-4,-4,-4,-5,0); ctx2.fillStyle=hcD; ctx2.fill(); ctx2.restore();
+    });
+  } else if(style==='bun'){
+    const g=_hairGrd(ctx2,hc,CX-HR,HY-HR,CX+HR,HY);
+    ctx2.beginPath(); ctx2.arc(CX,HY-6,HR+1,Math.PI*1.08,-0.11); ctx2.arc(CX,HY,HR,-0.11,Math.PI+0.11,true); ctx2.closePath(); ctx2.fillStyle=g; ctx2.fill();
+    const BY=HY-HR-10;
+    const bunG=ctx2.createRadialGradient(CX-6,BY-6,2,CX,BY,19);
+    bunG.addColorStop(0,_lighten(hc,0.3)); bunG.addColorStop(0.35,_lighten(hc,0.12)); bunG.addColorStop(0.7,hc); bunG.addColorStop(1,_darken(hc,0.22));
+    ctx2.beginPath(); ctx2.arc(CX,BY,19,0,Math.PI*2); ctx2.fillStyle=bunG; ctx2.fill();
+    ctx2.strokeStyle=_darken(hc,0.16); ctx2.lineWidth=1.1; ctx2.lineCap='round';
+    for(let a=0;a<Math.PI*2;a+=0.42){ ctx2.beginPath(); ctx2.arc(CX,BY,14,a,a+0.22); ctx2.stroke(); }
+    const tieG=ctx2.createLinearGradient(CX-18,BY+14,CX+18,BY+14);
+    tieG.addColorStop(0,_darken(hc,0.3)); tieG.addColorStop(0.5,_darken(hc,0.08)); tieG.addColorStop(1,_darken(hc,0.3));
+    ctx2.beginPath(); ctx2.ellipse(CX,BY+16,18,4,0,0,Math.PI*2); ctx2.fillStyle=tieG; ctx2.fill();
+  } else if(style==='hat'){
+    [[-14,2,4,8,-0.04],[0,0,4,7,0],[14,2,4,8,0.04]].forEach(([dx,dy,rw,rh,rot])=>{
+      ctx2.save(); ctx2.translate(CX+dx,HY-HR+17+dy); ctx2.rotate(rot);
+      ctx2.beginPath(); ctx2.moveTo(-rw,0); ctx2.bezierCurveTo(-rw,rh*0.5,-rw*0.3,rh,0,rh+1); ctx2.bezierCurveTo(rw*0.3,rh,rw,rh*0.5,rw,0); ctx2.bezierCurveTo(rw,-rh*0.3,-rw,-rh*0.3,-rw,0); ctx2.fillStyle=hcD; ctx2.fill(); ctx2.restore();
+    });
+    const brimG=ctx2.createLinearGradient(CX-HR-4,HY-HR+4,CX+HR+4,HY-HR+4);
+    brimG.addColorStop(0,_darken(hc,0.22)); brimG.addColorStop(0.5,_lighten(hc,0.06)); brimG.addColorStop(1,_darken(hc,0.22));
+    ctx2.beginPath(); ctx2.ellipse(CX,HY-HR+7,HR+4,9,0,0,Math.PI*2); ctx2.fillStyle=brimG; ctx2.fill();
+    ctx2.strokeStyle=_darken(hc,0.2); ctx2.lineWidth=1; ctx2.stroke();
+    const crownG=ctx2.createLinearGradient(CX-HR+4,HY-HR-22,CX+HR-4,HY-HR+6);
+    crownG.addColorStop(0,_lighten(hc,0.28)); crownG.addColorStop(0.4,_lighten(hc,0.1)); crownG.addColorStop(1,_darken(hc,0.12));
+    ctx2.beginPath(); ctx2.moveTo(CX-HR+6,HY-HR+6); ctx2.bezierCurveTo(CX-HR+4,HY-HR-6,CX-HR+8,HY-HR-24,CX,HY-HR-26); ctx2.bezierCurveTo(CX+HR-8,HY-HR-24,CX+HR-4,HY-HR-6,CX+HR-6,HY-HR+6); ctx2.closePath(); ctx2.fillStyle=crownG; ctx2.fill(); ctx2.strokeStyle=_darken(hc,0.2); ctx2.lineWidth=1.2; ctx2.stroke();
+    const badgeG=ctx2.createRadialGradient(CX-1,HY-HR-24,1,CX,HY-HR-23,5);
+    badgeG.addColorStop(0,'#FF8EC4'); badgeG.addColorStop(1,'#FF3B7A');
+    ctx2.beginPath(); ctx2.arc(CX,HY-HR-23,5,0,Math.PI*2); ctx2.fillStyle=badgeG; ctx2.fill();
+  }
+}
+
+function _drawEyebrows2(ctx2,expr,hairColor,CX,HEAD_CY) {
+  const eyeY=HEAD_CY-4, browY=eyeY-15;
+  const shapes={
+    happy:[[-22,2,-15,-3,-7,1],[7,1,15,-3,22,2]],
+    love:[[-22,0,-15,-5,-7,-1],[7,-1,15,-5,22,0]],
+    thanks:[[-22,2,-15,-1,-7,3],[7,3,15,-1,22,2]],
+    cool:[[-22,-5,-15,-5,-7,-5],[7,-5,15,-5,22,-5]],
+    excited:[[-22,-4,-15,-6,-7,-2],[7,-2,15,-6,22,-4]],
+    shy:[[-22,2,-15,4,-7,6],[7,6,15,4,22,2]],
+    celebrate:[[-22,-3,-15,-5,-7,0],[7,0,15,-5,22,-3]],
+    cheer:[[-22,-3,-15,-5,-7,-1],[7,-1,15,-5,22,-3]],
+  };
+  const segs=shapes[expr]||shapes.happy;
+  ctx2.strokeStyle=_darken(hairColor,0.1); ctx2.lineWidth=2.2; ctx2.lineCap='round';
+  segs.forEach(([x1,y1,cx,cy,x2,y2])=>{
+    ctx2.beginPath(); ctx2.moveTo(CX+x1,browY+y1); ctx2.quadraticCurveTo(CX+cx,browY+cy,CX+x2,browY+y2); ctx2.stroke();
+  });
+}
+
+function _drawSingleEye2(ctx2,ex,eyeY,irisCol,eyeR) {
+  ctx2.beginPath(); ctx2.ellipse(ex,eyeY,eyeR,eyeR*0.88,0,0,Math.PI*2); ctx2.fillStyle='#ffffff'; ctx2.fill();
+  ctx2.beginPath(); ctx2.ellipse(ex,eyeY,eyeR,eyeR*0.88,0,0,Math.PI*2); ctx2.strokeStyle='rgba(30,15,10,0.85)'; ctx2.lineWidth=2.2; ctx2.stroke();
+  const irisR=eyeR*0.76;
+  const iG=ctx2.createRadialGradient(ex-irisR*0.22,eyeY-irisR*0.28,irisR*0.05,ex,eyeY,irisR);
+  iG.addColorStop(0,_lighten(irisCol,0.45)); iG.addColorStop(0.35,_lighten(irisCol,0.18)); iG.addColorStop(0.72,irisCol); iG.addColorStop(1,_darken(irisCol,0.35));
+  ctx2.beginPath(); ctx2.arc(ex,eyeY,irisR,0,Math.PI*2); ctx2.fillStyle=iG; ctx2.fill();
+  ctx2.beginPath(); ctx2.arc(ex,eyeY,irisR*0.42,0,Math.PI*2); ctx2.fillStyle='#111'; ctx2.fill();
+  ctx2.beginPath(); ctx2.arc(ex-irisR*0.28,eyeY-irisR*0.35,irisR*0.28,0,Math.PI*2); ctx2.fillStyle='rgba(255,255,255,0.96)'; ctx2.fill();
+  ctx2.beginPath(); ctx2.arc(ex+irisR*0.30,eyeY+irisR*0.22,irisR*0.13,0,Math.PI*2); ctx2.fillStyle='rgba(255,255,255,0.65)'; ctx2.fill();
+  ctx2.beginPath(); ctx2.ellipse(ex,eyeY-eyeR*0.04,eyeR+1,eyeR*0.88+0.5,0,Math.PI+0.12,-0.12); ctx2.strokeStyle='rgba(20,8,8,0.9)'; ctx2.lineWidth=3.2; ctx2.lineCap='round'; ctx2.stroke();
+}
+
+function _drawEyes2(ctx2,style,expr,faceColor,CX,HEAD_CY) {
+  const eyeY=HEAD_CY-2, lx=CX-21, rx=CX+21;
+  if(['happy','celebrate','cheer','excited'].includes(expr)){
+    ctx2.lineCap='round';
+    [lx,rx].forEach(ex=>{
+      ctx2.beginPath(); ctx2.arc(ex,eyeY+5,9,Math.PI+0.1,-0.1); ctx2.arc(ex,eyeY-2,9,-0.1,Math.PI+0.1,true); ctx2.closePath(); ctx2.fillStyle='#1a1a1a'; ctx2.fill();
+      ctx2.beginPath(); ctx2.arc(ex,eyeY+3.5,5.5,Math.PI+0.3,-0.3); ctx2.strokeStyle='rgba(255,255,255,0.22)'; ctx2.lineWidth=1.8; ctx2.stroke();
+    });
+  } else if(expr==='love'){
+    [lx,rx].forEach(ex=>{
+      ctx2.save(); ctx2.translate(ex,eyeY-6);
+      const hG=ctx2.createRadialGradient(-3,-4,1,0,0,10);
+      hG.addColorStop(0,'#FF8FB0'); hG.addColorStop(0.55,'#FF2D55'); hG.addColorStop(1,'#CC0033');
+      ctx2.fillStyle=hG; _heartPath2(ctx2,0,0,9); ctx2.fill(); ctx2.restore();
+    });
+  } else if(expr==='cool'){
+    const lensData=[{x:lx-11,w:21,h:15,r:6},{x:rx-10,w:21,h:15,r:6}];
+    lensData.forEach(({x,w,h,r})=>{
+      const lG=ctx2.createLinearGradient(x,eyeY-8,x,eyeY+8);
+      lG.addColorStop(0,'rgba(20,20,40,0.92)'); lG.addColorStop(1,'rgba(10,10,25,0.85)');
+      ctx2.beginPath(); ctx2.roundRect(x,eyeY-8,w,h,r); ctx2.fillStyle=lG; ctx2.fill();
+      ctx2.beginPath(); ctx2.roundRect(x,eyeY-8,w,h,r); ctx2.strokeStyle='#888'; ctx2.lineWidth=1.8; ctx2.stroke();
+    });
+    ctx2.beginPath(); ctx2.moveTo(lx+10,eyeY-2); ctx2.lineTo(rx-10,eyeY-2); ctx2.strokeStyle='#777'; ctx2.lineWidth=2; ctx2.stroke();
+  } else {
+    const irisColors={normal:'#3B78E7',sparkle:'#E8309A',sleepy:'#7B7FCD',thanks:'#2e8b57',shy:'#D05090'};
+    const irisCol=irisColors[style]||irisColors.normal;
+    const eyeR=style==='sleepy'?7:9;
+    [lx,rx].forEach(ex=>{ _drawSingleEye2(ctx2,ex,eyeY,irisCol,eyeR); });
+    if(style==='sparkle'){
+      [[lx+eyeR+3,eyeY-eyeR-1,5],[rx+eyeR+3,eyeY-eyeR-3,4],[lx-eyeR-4,eyeY-4,3],[rx+eyeR+2,eyeY+4,3]].forEach(([sx,sy,sr])=>{
+        ctx2.save(); ctx2.translate(sx,sy); ctx2.fillStyle='#FFD700';
+        ctx2.beginPath(); for(let i=0;i<5;i++){ ctx2.rotate(Math.PI*2/5); ctx2.lineTo(0,-sr); ctx2.rotate(Math.PI/5); ctx2.lineTo(0,-sr*0.4); } ctx2.closePath(); ctx2.fill(); ctx2.restore();
+      });
+    }
+    if(style==='sleepy'){
+      [lx,rx].forEach(ex=>{
+        ctx2.beginPath(); ctx2.ellipse(ex,eyeY-eyeR*0.1,eyeR+0.5,eyeR*0.52,0,Math.PI,0); ctx2.fillStyle=faceColor; ctx2.fill();
+        ctx2.beginPath(); ctx2.ellipse(ex,eyeY-eyeR*0.1,eyeR+0.5,eyeR*0.52,0,Math.PI,0); ctx2.strokeStyle='rgba(20,8,8,0.75)'; ctx2.lineWidth=2.8; ctx2.lineCap='round'; ctx2.stroke();
+      });
+    }
+  }
+}
+
+function _drawMouth2(ctx2,expr,CX,HEAD_CY) {
+  const my=HEAD_CY+24;
+  ctx2.lineCap='round'; ctx2.lineJoin='round';
+  if(['happy','excited','celebrate'].includes(expr)){
+    ctx2.beginPath(); ctx2.moveTo(CX-14,my); ctx2.bezierCurveTo(CX-10,my+14,CX+10,my+14,CX+14,my); ctx2.strokeStyle='#c0555f'; ctx2.lineWidth=2.2; ctx2.stroke();
+    ctx2.beginPath(); ctx2.moveTo(CX-13,my+1); ctx2.bezierCurveTo(CX-9,my+13,CX+9,my+13,CX+13,my+1); ctx2.closePath(); ctx2.fillStyle='#6B2737'; ctx2.fill();
+    ctx2.beginPath(); ctx2.moveTo(CX-12,my+2); ctx2.bezierCurveTo(CX-8,my+7,CX+8,my+7,CX+12,my+2); ctx2.fillStyle='#fff'; ctx2.fill();
+    ctx2.beginPath(); ctx2.ellipse(CX,my+10,6,4,0,0,Math.PI); ctx2.fillStyle='#FF8A9A'; ctx2.fill();
+  } else if(expr==='love'){
+    ctx2.beginPath(); ctx2.moveTo(CX-10,my+2); ctx2.bezierCurveTo(CX-6,my+10,CX+6,my+10,CX+10,my+2); ctx2.strokeStyle='#c0555f'; ctx2.lineWidth=2.5; ctx2.stroke();
+    ctx2.fillStyle='#FF8A9A'; ctx2.beginPath(); ctx2.moveTo(CX-10,my+2); ctx2.bezierCurveTo(CX-6,my+10,CX+6,my+10,CX+10,my+2); ctx2.closePath(); ctx2.fill();
+  } else if(expr==='thanks'){
+    ctx2.beginPath(); ctx2.moveTo(CX-11,my+4); ctx2.bezierCurveTo(CX-4,my+10,CX+4,my+10,CX+11,my+4); ctx2.strokeStyle='#c0555f'; ctx2.lineWidth=2.2; ctx2.stroke();
+  } else if(expr==='cool'){
+    ctx2.beginPath(); ctx2.moveTo(CX-10,my+6); ctx2.lineTo(CX+10,my+6); ctx2.strokeStyle='#555'; ctx2.lineWidth=2.2; ctx2.stroke();
+    ctx2.beginPath(); ctx2.moveTo(CX+6,my+6); ctx2.bezierCurveTo(CX+8,my+6,CX+10,my+4,CX+10,my+2); ctx2.stroke();
+  } else if(expr==='shy'){
+    ctx2.beginPath(); ctx2.moveTo(CX-8,my+4); ctx2.bezierCurveTo(CX-3,my+9,CX+3,my+9,CX+8,my+4); ctx2.strokeStyle='#c0555f'; ctx2.lineWidth=2.2; ctx2.stroke();
+  } else if(expr==='cheer'){
+    ctx2.beginPath(); ctx2.moveTo(CX-13,my); ctx2.bezierCurveTo(CX-10,my+16,CX+10,my+16,CX+13,my); ctx2.strokeStyle='#c0555f'; ctx2.lineWidth=2.2; ctx2.stroke();
+    ctx2.beginPath(); ctx2.moveTo(CX-12,my+1); ctx2.bezierCurveTo(CX-8,my+14,CX+8,my+14,CX+12,my+1); ctx2.closePath(); ctx2.fillStyle='#6B2737'; ctx2.fill();
+    ctx2.beginPath(); ctx2.moveTo(CX-11,my+2); ctx2.bezierCurveTo(CX-7,my+7,CX+7,my+7,CX+11,my+2); ctx2.fillStyle='#fff'; ctx2.fill();
+  } else {
+    ctx2.beginPath(); ctx2.moveTo(CX-9,my+4); ctx2.bezierCurveTo(CX-3,my+8,CX+3,my+8,CX+9,my+4); ctx2.strokeStyle='#c0555f'; ctx2.lineWidth=2; ctx2.stroke();
+  }
+}
+
+function _drawAccessory2(ctx2,acc,CX,HEAD_CY,HEAD_R) {
+  const eyeY=HEAD_CY-4, lx=CX-20, rx=CX+20;
+  if(acc==='glasses'){
+    const fG=ctx2.createLinearGradient(lx-13,eyeY-9,rx+13,eyeY+8);
+    fG.addColorStop(0,'#8B5E2A'); fG.addColorStop(0.5,'#5C3A1E'); fG.addColorStop(1,'#8B5E2A');
+    const lG=ctx2.createLinearGradient(lx-13,eyeY-8,lx-13,eyeY+8);
+    lG.addColorStop(0,'rgba(200,230,255,0.22)'); lG.addColorStop(1,'rgba(160,200,240,0.1)');
+    ctx2.beginPath(); ctx2.roundRect(lx-13,eyeY-9,23,17,6); ctx2.fillStyle=lG; ctx2.fill();
+    ctx2.beginPath(); ctx2.roundRect(rx-10,eyeY-9,23,17,6); ctx2.fillStyle=lG; ctx2.fill();
+    ctx2.beginPath(); ctx2.roundRect(lx-13,eyeY-9,23,17,6); ctx2.strokeStyle=fG; ctx2.lineWidth=2.6; ctx2.stroke();
+    ctx2.beginPath(); ctx2.roundRect(rx-10,eyeY-9,23,17,6); ctx2.stroke();
+    ctx2.beginPath(); ctx2.moveTo(lx+10,eyeY-1); ctx2.bezierCurveTo(lx+13,eyeY-5,rx-13,eyeY-5,rx-10,eyeY-1); ctx2.strokeStyle=fG; ctx2.lineWidth=2; ctx2.stroke();
+    ctx2.strokeStyle='#6B4820'; ctx2.lineWidth=2.2; ctx2.lineCap='round';
+    ctx2.beginPath(); ctx2.moveTo(lx-13,eyeY-2); ctx2.bezierCurveTo(lx-17,eyeY-2,lx-20,eyeY+2,lx-22,eyeY+6); ctx2.stroke();
+    ctx2.beginPath(); ctx2.moveTo(rx+13,eyeY-2); ctx2.bezierCurveTo(rx+17,eyeY-2,rx+20,eyeY+2,rx+22,eyeY+6); ctx2.stroke();
+  } else if(acc==='ribbon'){
+    const RX=CX+HEAD_R-12, RY=HEAD_CY-HEAD_R+2;
+    const wG=ctx2.createRadialGradient(RX-4,RY-6,1,RX,RY,18);
+    wG.addColorStop(0,'#FFB0D8'); wG.addColorStop(0.5,'#FF6BB4'); wG.addColorStop(1,'#E0358A');
+    ctx2.beginPath(); ctx2.moveTo(RX,RY); ctx2.bezierCurveTo(RX-4,RY-12,RX-16,RY-14,RX-12,RY-8); ctx2.bezierCurveTo(RX-8,RY-4,RX-2,RY-2,RX,RY); ctx2.fillStyle=wG; ctx2.fill();
+    ctx2.beginPath(); ctx2.moveTo(RX,RY); ctx2.bezierCurveTo(RX+4,RY-12,RX+16,RY-14,RX+12,RY-8); ctx2.bezierCurveTo(RX+8,RY-4,RX+2,RY-2,RX,RY); ctx2.fillStyle=wG; ctx2.fill();
+    const kG=ctx2.createRadialGradient(RX-2,RY-2,1,RX,RY,6);
+    kG.addColorStop(0,'#FFD4EC'); kG.addColorStop(0.5,'#FF6BB4'); kG.addColorStop(1,'#CC1870');
+    ctx2.beginPath(); ctx2.arc(RX,RY,6,0,Math.PI*2); ctx2.fillStyle=kG; ctx2.fill();
+  } else if(acc==='flower'){
+    const FX=CX+HEAD_R-8, FY=HEAD_CY-HEAD_R+6;
+    for(let i=0;i<8;i++){
+      const a=i*Math.PI/4;
+      const pG=ctx2.createRadialGradient(FX+Math.cos(a)*5,FY+Math.sin(a)*5,0,FX+Math.cos(a)*10,FY+Math.sin(a)*10,8);
+      if(i%2===0){pG.addColorStop(0,'#FFD6E0'); pG.addColorStop(1,'#FF8FAD');}
+      else{pG.addColorStop(0,'#FFB0CC'); pG.addColorStop(1,'#FF6B9D');}
+      ctx2.beginPath(); ctx2.ellipse(FX+Math.cos(a)*9,FY+Math.sin(a)*9,6.5,4,a,0,Math.PI*2); ctx2.fillStyle=pG; ctx2.fill();
+    }
+    const cG=ctx2.createRadialGradient(FX-1,FY-1,1,FX,FY,8);
+    cG.addColorStop(0,'#FFFDE7'); cG.addColorStop(0.5,'#FFD54F'); cG.addColorStop(1,'#F57F17');
+    ctx2.beginPath(); ctx2.arc(FX,FY,8,0,Math.PI*2); ctx2.fillStyle=cG; ctx2.fill();
+  }
+}
+
+function _drawEarrings2(ctx2,CX,HEAD_CY,HEAD_R) {
+  const ey=HEAD_CY+4, lx=CX-HEAD_R+3, rx=CX+HEAD_R-3;
+  [lx,rx].forEach(ex=>{
+    ctx2.beginPath(); ctx2.moveTo(ex,ey-2); ctx2.lineTo(ex,ey+1); ctx2.strokeStyle='#C8A000'; ctx2.lineWidth=1.6; ctx2.stroke();
+    const sG=ctx2.createRadialGradient(ex-1.5,ey-1.5,0.5,ex,ey,5.5);
+    sG.addColorStop(0,'#FFF9C4'); sG.addColorStop(0.3,'#FFD700'); sG.addColorStop(0.7,'#FFA000'); sG.addColorStop(1,'#7B5800');
+    ctx2.beginPath(); ctx2.arc(ex,ey,5,0,Math.PI*2); ctx2.fillStyle=sG; ctx2.fill(); ctx2.strokeStyle='#9A6F00'; ctx2.lineWidth=0.9; ctx2.stroke();
+    ctx2.beginPath(); ctx2.moveTo(ex,ey+5); ctx2.lineTo(ex,ey+9); ctx2.strokeStyle='#B8900A'; ctx2.lineWidth=1.5; ctx2.stroke();
+    const dG=ctx2.createRadialGradient(ex-1.5,ey+10,0.5,ex,ey+13,5);
+    dG.addColorStop(0,'#FFF9C4'); dG.addColorStop(0.4,'#FFD700'); dG.addColorStop(0.8,'#FFA000'); dG.addColorStop(1,'#7B5800');
+    ctx2.beginPath(); ctx2.ellipse(ex,ey+13,4.5,5.5,0,0,Math.PI*2); ctx2.fillStyle=dG; ctx2.fill(); ctx2.strokeStyle='#9A6F00'; ctx2.lineWidth=0.9; ctx2.stroke();
+  });
+}
+
+function _drawSparkles2(ctx2,CX,HEAD_CY) {
+  const stars=[[CX-46,HEAD_CY-36,8],[CX+46,HEAD_CY-30,6],[CX-36,HEAD_CY+38,5],[CX+40,HEAD_CY+30,7]];
+  stars.forEach(([x,y,r])=>{
+    ctx2.save(); ctx2.translate(x,y); ctx2.fillStyle='#FFD700';
+    ctx2.beginPath(); for(let i=0;i<5;i++){ctx2.rotate(Math.PI*2/5);ctx2.lineTo(0,-r);ctx2.rotate(Math.PI*2/10);ctx2.lineTo(0,-r*0.4);} ctx2.closePath(); ctx2.fill(); ctx2.restore();
+  });
+}
+
+// ===== Card Canvas Animation (HQ engine) =====
+function startCardAnimation(av) {
+  const canvas = document.getElementById('canvas_' + av.id);
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const CW = 140, CH = 140;
+  const motion = av.motion || 'bounce';
+  let t = Math.random() * Math.PI * 2;
+
+  // Normalize avatar data keys
+  const s = {
+    faceColor: av.face_color || av.faceColor || '#FFDABB',
+    hairStyle: av.hair_style || av.hairStyle || 'short',
+    hairColor: av.hair_color || av.hairColor || '#3D2B1F',
+    eyeStyle:  av.eye_style  || av.eyeStyle  || 'normal',
+    accessory: av.accessory || 'none',
+    outfit:    av.outfit    || 'casual',
+    expression:av.expression|| 'happy',
+  };
+
+  function tick() {
+    t += 0.05;
+    let yOff=0, rot=0, sc=1;
+    if(motion==='bounce')    yOff=Math.sin(t*2.5)*8;
+    else if(motion==='wave'){ yOff=Math.sin(t*2)*4; rot=Math.sin(t*3)*0.06; }
+    else if(motion==='spin') rot=t*0.05;
+    else if(motion==='heartbeat') sc=1+Math.abs(Math.sin(t*3))*0.09;
+    else if(motion==='tada'){ yOff=Math.sin(t*4)*6; rot=Math.sin(t*5)*0.08; sc=1+Math.abs(Math.sin(t*4))*0.07; }
+
+    // Native size: 200x240, scaled to fit 140x140
+    ctx.clearRect(0,0,CW,CH);
+    ctx.save();
+
+    // Center transform with motion
+    const scaleX = CW / 200, scaleY = CH / 240;
+    const scale = Math.min(scaleX, scaleY);
+    const offX = (CW - 200*scale)/2;
+    const offY = (CH - 240*scale)/2 + yOff;
+
+    ctx.translate(offX + 100*scale, offY + 120*scale);
+    ctx.rotate(rot);
+    ctx.scale(sc*scale, sc*scale);
+    ctx.translate(-100, -120);
+
+    _drawFullAvatar(ctx, s);
+
+    ctx.restore();
+    const frame = requestAnimationFrame(tick);
+    if (!cardCanvases[av.id]) cardCanvases[av.id] = {};
+    cardCanvases[av.id].animFrame = frame;
+  }
+  tick();
+}
+
+// ===== Use Avatar =====
+function useAvatar(id) {
+  const av = allAvatars.find(a => a.id === id);
+  if (!av) return;
+  // Save to sessionStorage for gift flow
+  const avatarData = {
+    id: av.id,
+    name: av.name || 'アバター',
+    faceColor: av.face_color || '#FFDABB',
+    hairStyle: av.hair_style || 'short',
+    hairColor: av.hair_color || '#3D2B1F',
+    eyeStyle: av.eye_style || 'normal',
+    accessory: av.accessory || 'none',
+    outfit: av.outfit || 'casual',
+    expression: av.expression || 'happy',
+    motion: av.motion || 'bounce'
+  };
+  sessionStorage.setItem('avatarData', JSON.stringify(avatarData));
+  showToast('✅ アバターをセットしました！ギフト選択へ移動します...');
+  setTimeout(() => { window.location.href = 'gift.html'; }, 1200);
+}
+
+// ===== Edit Avatar =====
+function editAvatar(id) {
+  const av = allAvatars.find(a => a.id === id);
+  if (!av) return;
+
+  editingAvatarId = id;
+
+  // Load values into form
+  newState.faceColor  = av.face_color || '#FFDABB';
+  newState.hairStyle  = av.hair_style || 'short';
+  newState.hairColor  = av.hair_color || '#3D2B1F';
+  newState.eyeStyle   = av.eye_style  || 'normal';
+  newState.accessory  = av.accessory  || 'none';
+  newState.outfit     = av.outfit     || 'casual';
+  newState.expression = av.expression || 'happy';
+  newState.motion     = av.motion     || 'bounce';
+
+  document.getElementById('newAvatarName').value = av.name || '';
+  document.getElementById('newAvatarNameDisplay').textContent = av.name || 'アバター';
+  document.getElementById('newExprDisplay').textContent = EXPR_EMOJI[newState.expression] || '😄';
+  document.getElementById('newMotionLabel').textContent = MOTION_LABEL[newState.motion] || 'ジャンプ中';
+  document.getElementById('saveBtnLabel').textContent = '変更を保存';
+  document.getElementById('editingBanner').style.display = 'block';
+  document.getElementById('editingName').textContent = `「${av.name || 'アバター'}」を編集しています`;
+
+  refreshNewUI();
+  switchTab('create');
+  startNewPreview();
+}
+
+function cancelEdit() {
+  editingAvatarId = null;
+  document.getElementById('editingBanner').style.display = 'none';
+  document.getElementById('saveBtnLabel').textContent = 'ストックに保存';
+  resetForm();
+}
+
+// ===== Delete =====
+function openDeleteModal(id, name) {
+  deleteTargetId = id;
+  document.getElementById('deleteModalDesc').textContent = `「${name}」を削除します。この操作は取り消せません。`;
+  document.getElementById('deleteModal').classList.add('open');
+}
+
+function closeDeleteModal() {
+  document.getElementById('deleteModal').classList.remove('open');
+  deleteTargetId = null;
+}
+
+async function confirmDelete() {
+  if (!deleteTargetId) return;
+
+  // IDを先に取得してからモーダルを閉じる
+  const targetId = deleteTargetId;
+  closeDeleteModal();
+
+  // ボタンを無効化して二重押しを防ぐ
+  const card = document.getElementById('avcard_' + targetId);
+  if (card) {
+    card.style.opacity = '0.4';
+    card.style.pointerEvents = 'none';
+  }
+
+  try {
+    const res = await fetch(`tables/avatars/${targetId}`, { method: 'DELETE' });
+    if (!res.ok && res.status !== 204) throw new Error('delete failed: ' + res.status);
+
+    // 成功したらUIから削除
+    allAvatars = allAvatars.filter(a => a.id !== targetId);
+    renderAvatarGrid();
+    showToast('🗑️ アバターを削除しました');
+  } catch(e) {
+    // 失敗したら元に戻す
+    if (card) {
+      card.style.opacity = '';
+      card.style.pointerEvents = '';
+    }
+    showToast('⚠️ 削除に失敗しました。もう一度お試しください');
+  }
+}
+
+// ===== Save Avatar =====
+async function saveAvatar() {
+  const name = document.getElementById('newAvatarName').value.trim() || 'アバター';
+
+  const saveBtn = document.querySelector('.form-actions .btn-primary');
+  const saveLabelEl = document.getElementById('saveBtnLabel');
+  const originalLabel = saveLabelEl ? saveLabelEl.textContent : 'ストックに保存';
+  saveBtn.disabled = true;
+  saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 保存中...';
+
+  try {
+    if (editingAvatarId) {
+      // 編集：PUT に id を含めて送る
+      const payload = {
+        id:         editingAvatarId,
+        sender_id:  senderId,
+        name:       name,
+        face_color: newState.faceColor,
+        hair_style: newState.hairStyle,
+        hair_color: newState.hairColor,
+        eye_style:  newState.eyeStyle,
+        accessory:  newState.accessory,
+        outfit:     newState.outfit,
+        expression: newState.expression,
+        motion:     newState.motion
+      };
+      const res = await fetch(`tables/avatars/${editingAvatarId}`, {
+        method: 'PUT',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) throw new Error('PUT failed: ' + res.status);
+
+      editingAvatarId = null;
+      document.getElementById('editingBanner').style.display = 'none';
+      showToast('✏️ アバターを更新しました！');
+    } else {
+      // 新規：POST
+      const payload = {
+        sender_id:  senderId,
+        name:       name,
+        face_color: newState.faceColor,
+        hair_style: newState.hairStyle,
+        hair_color: newState.hairColor,
+        eye_style:  newState.eyeStyle,
+        accessory:  newState.accessory,
+        outfit:     newState.outfit,
+        expression: newState.expression,
+        motion:     newState.motion
+      };
+      const res = await fetch('tables/avatars', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) throw new Error('POST failed: ' + res.status);
+
+      showToast('🎉 アバターを保存しました！');
+    }
+
+    await loadAvatars();
+    switchTab('list');
+    resetForm();
+
+  } catch(e) {
+    console.error('saveAvatar error:', e);
+    showToast('⚠️ 保存に失敗しました（' + e.message + '）');
+    // ボタンを元に戻す
+    saveBtn.disabled = false;
+    saveBtn.innerHTML = `<i class="fas fa-save"></i> <span id="saveBtnLabel">${originalLabel}</span>`;
+    return;
+  }
+
+  // 成功時もボタンをリセット
+  saveBtn.disabled = false;
+  saveBtn.innerHTML = '<i class="fas fa-save"></i> <span id="saveBtnLabel">ストックに保存</span>';
+}
+
+// ===== Form helpers =====
+function setNew(key, val, el) {
+  newState[key] = val;
+  const rowMap = {
+    faceColor:'newFaceColorRow', hairStyle:'newHairStyleRow', hairColor:'newHairColorRow',
+    eyeStyle:'newEyeStyleRow', accessory:'newAccessoryRow', outfit:'newOutfitRow'
+  };
+  const rowId = rowMap[key];
+  if (rowId) {
+    document.querySelectorAll(`#${rowId} .opt-btn, #${rowId} .color-swatch`).forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+  }
+  updateNewPreview();
+}
+
+function setNewExpr(val, el) {
+  newState.expression = val;
+  document.querySelectorAll('.expr-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('newExprDisplay').textContent = EXPR_EMOJI[val] || '😄';
+  updateNewPreview();
+}
+
+function setNewMotion(val, el) {
+  newState.motion = val;
+  document.querySelectorAll('.motion-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('newMotionLabel').textContent = MOTION_LABEL[val];
+  startNewPreview();
+}
+
+function updateNewPreview() {
+  const name = document.getElementById('newAvatarName').value.trim() || 'アバター';
+  document.getElementById('newAvatarNameDisplay').textContent = name;
+}
+
+function refreshNewUI() {
+  const s = newState;
+  const rows = [
+    {id:'newFaceColorRow',  key:'faceColor'},
+    {id:'newHairStyleRow',  key:'hairStyle'},
+    {id:'newHairColorRow',  key:'hairColor'},
+    {id:'newEyeStyleRow',   key:'eyeStyle'},
+    {id:'newAccessoryRow',  key:'accessory'},
+    {id:'newOutfitRow',     key:'outfit'},
+  ];
+  rows.forEach(r => {
+    document.querySelectorAll(`#${r.id} .opt-btn, #${r.id} .color-swatch`).forEach(el => {
+      el.classList.toggle('active', el.dataset.val === s[r.key]);
+    });
+  });
+  document.querySelectorAll('.expr-btn').forEach(b => b.classList.toggle('active', b.dataset.val === s.expression));
+  document.querySelectorAll('.motion-btn').forEach(b => b.classList.toggle('active', b.dataset.val === s.motion));
+  document.getElementById('newExprDisplay').textContent = EXPR_EMOJI[s.expression] || '😄';
+  document.getElementById('newMotionLabel').textContent = MOTION_LABEL[s.motion];
+}
+
+function resetForm() {
+  newState.faceColor='#FFDABB'; newState.hairStyle='short'; newState.hairColor='#3D2B1F';
+  newState.eyeStyle='normal'; newState.accessory='none'; newState.outfit='casual';
+  newState.expression='happy'; newState.motion='bounce';
+  document.getElementById('newAvatarName').value = '';
+  document.getElementById('newAvatarNameDisplay').textContent = 'アバター';
+  document.getElementById('newExprDisplay').textContent = '😄';
+  document.getElementById('newMotionLabel').textContent = 'ジャンプ中';
+  refreshNewUI();
+  startNewPreview();
+}
+
+// ===== New Avatar Preview Animation (HQ engine) =====
+function startNewPreview() {
+  if (newAnimFrame) cancelAnimationFrame(newAnimFrame);
+  newMotionTime = 0;
+  const canvas = document.getElementById('newAvatarCanvas');
+  const ctx = canvas.getContext('2d');
+  const CW = 180, CH = 180;
+
+  function tick() {
+    newMotionTime += 0.055;
+    let yOff=0, rot=0, sc=1;
+    const m = newState.motion;
+    if(m==='bounce')    yOff=Math.sin(newMotionTime*2.5)*10;
+    else if(m==='wave'){ yOff=Math.sin(newMotionTime*2)*5; rot=Math.sin(newMotionTime*3)*0.07; }
+    else if(m==='spin') rot=newMotionTime*0.05;
+    else if(m==='heartbeat') sc=1+Math.abs(Math.sin(newMotionTime*3))*0.1;
+    else if(m==='tada'){ yOff=Math.sin(newMotionTime*4)*7; rot=Math.sin(newMotionTime*5)*0.09; sc=1+Math.abs(Math.sin(newMotionTime*4))*0.07; }
+
+    ctx.clearRect(0,0,CW,CH);
+    ctx.save();
+
+    // Scale 200x240 → 180x180
+    const scale = Math.min(CW/200, CH/240);
+    const offX = (CW-200*scale)/2;
+    const offY = (CH-240*scale)/2 + yOff;
+
+    ctx.translate(offX+100*scale, offY+120*scale);
+    ctx.rotate(rot);
+    ctx.scale(sc*scale, sc*scale);
+    ctx.translate(-100,-120);
+
+    _drawFullAvatar(ctx, newState);
+
+    ctx.restore();
+    newAnimFrame = requestAnimationFrame(tick);
+  }
+  tick();
+}
+
+// ===== Toast =====
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2800);
+}
+
+// ===== ESC to close modal =====
+document.addEventListener('keydown', e => { if(e.key==='Escape') closeDeleteModal(); });
+
+// ===== Init =====
+loadAvatars();
+startNewPreview();
+</script>
+<script>
+function toggleDrawer(){const d=document.getElementById('navDrawer'),h=document.getElementById('navHamburger');d.classList.toggle('open');h.classList.toggle('open');document.body.style.overflow=d.classList.contains('open')?'hidden':'';}
+function closeDrawer(){const d=document.getElementById('navDrawer'),h=document.getElementById('navHamburger');d.classList.remove('open');h.classList.remove('open');document.body.style.overflow='';}
+</script>
+</body>
+</html>

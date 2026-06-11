@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>みんなのギフト — コミュニティ | OKURIATO</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+  <style>
+    body { background: #F5F0FF; }
+
+    /* ===== Page Hero ===== */
+    .community-hero {
+      background: linear-gradient(135deg, #302b63 0%, #A855F7 50%, #FF6B9D 100%);
+      padding: 60px 24px 50px;
+      text-align: center;
+      color: white;
+      position: relative;
+      overflow: hidden;
+    }
+    .community-hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 70% 50% at 50% 50%, rgba(255,255,255,0.1) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .community-hero h1 {
+      font-size: clamp(1.8rem, 5vw, 3rem);
+      font-weight: 900;
+      margin-bottom: 12px;
+      position: relative;
+    }
+    .community-hero p {
+      color: rgba(255,255,255,0.85);
+      font-size: 1rem;
+      max-width: 480px;
+      margin: 0 auto 28px;
+      line-height: 1.7;
+      position: relative;
+    }
+    .hero-stats {
+      display: flex;
+      gap: 24px;
+      justify-content: center;
+      flex-wrap: wrap;
+      position: relative;
+    }
+    .hero-stat {
+      text-align: center;
+    }
+    .hero-stat .num { font-size: 1.8rem; font-weight: 900; }
+    .hero-stat .label { font-size: 0.75rem; opacity: 0.8; }
+
+    /* ===== Main Layout ===== */
+    .community-main {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 32px 20px 80px;
+    }
+
+    /* ===== Tabs ===== */
+    .comm-tabs {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+    .comm-tab {
+      padding: 9px 22px;
+      border-radius: 50px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      cursor: pointer;
+      border: 2px solid #e0d4f7;
+      background: white;
+      color: #A855F7;
+      transition: all 0.2s;
+    }
+    .comm-tab.active {
+      background: linear-gradient(135deg, #A855F7, #7c3aed);
+      color: white;
+      border-color: transparent;
+      box-shadow: 0 4px 14px rgba(168,85,247,0.4);
+    }
+    .comm-tab:hover:not(.active) { background: #f5eeff; }
+
+    /* ===== Post Feed ===== */
+    .post-feed {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .post-card {
+      background: white;
+      border-radius: 24px;
+      box-shadow: 0 4px 20px rgba(168,85,247,0.1);
+      overflow: hidden;
+      transition: all 0.25s;
+      border: 1px solid rgba(168,85,247,0.08);
+    }
+    .post-card:hover { transform: translateY(-3px); box-shadow: 0 12px 36px rgba(168,85,247,0.18); }
+
+    /* ===== Gift Card poster inside post — BABYMONSTER STYLE ===== */
+    .post-gift-card-wrap {
+      margin: 0 20px 14px;
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.2), 0 0 0 1px rgba(168,85,247,0.08);
+    }
+    /* Outer wrapper centers the card at max 180px width */
+    .post-gift-card-outer {
+      display: flex;
+      justify-content: center;
+      background: rgba(0,0,0,0.04);
+      padding: 10px;
+    }
+    .post-gift-card {
+      width: 160px;
+      aspect-ratio: 9/14;
+      position: relative;
+      overflow: hidden;
+      border-radius: 14px;
+      flex-shrink: 0;
+    }
+
+    /* Full-bleed background canvas */
+    .pgc-bg-canvas {
+      position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; display: block;
+    }
+
+    /* Darkening overlay */
+    .pgc-overlay {
+      position: absolute; inset: 0; z-index: 1;
+      background: linear-gradient(
+        180deg,
+        rgba(0,0,0,0.18) 0%,
+        rgba(0,0,0,0.04) 40%,
+        rgba(0,0,0,0.04) 55%,
+        rgba(0,0,0,0.72) 100%
+      );
+    }
+
+    /* Top brand strip */
+    .pgc-top {
+      position: absolute; z-index: 3; top: 0; left: 0; right: 0;
+      padding: 8px 10px 6px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .pgc-brand { font-size: 0.5rem; font-weight: 900; letter-spacing: 0.18em; color: rgba(255,255,255,0.9); text-transform: uppercase; }
+    .pgc-brand-badge { font-size: 0.75rem; }
+
+    /* Headline */
+    .pgc-headline {
+      position: absolute; z-index: 3; top: 30px; left: 0; right: 0;
+      text-align: center; padding: 0 8px;
+    }
+    .pgc-eyebrow {
+      font-size: 0.42rem; color: rgba(255,255,255,0.6); font-weight: 700;
+      letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 2px;
+    }
+    .pgc-headline-main {
+      font-size: clamp(1rem, 4.5vw, 1.6rem); font-weight: 900;
+      color: white; line-height: 1.05; letter-spacing: -0.01em;
+      filter: drop-shadow(0 2px 6px rgba(0,0,0,0.5));
+    }
+    .pgc-headline-sub {
+      font-size: 0.44rem; color: rgba(255,255,255,0.65); font-weight: 700;
+      letter-spacing: 0.1em; margin-top: 3px;
+    }
+
+    /* Center emoji */
+    .pgc-emoji-center {
+      position: absolute; z-index: 2; top: 50%; left: 50%;
+      transform: translate(-50%,-48%);
+      font-size: clamp(2.4rem,12vw,4rem);
+      filter: drop-shadow(0 6px 18px rgba(0,0,0,0.35));
+      line-height: 1;
+      animation: pgcFloat 3s ease-in-out infinite;
+    }
+    @keyframes pgcFloat {
+      0%,100% { transform: translate(-50%,-48%) scale(1); }
+      50%      { transform: translate(-50%,-52%) scale(1.05); }
+    }
+
+    /* Bottom info */
+    .pgc-bottom {
+      position: absolute; z-index: 3; bottom: 0; left: 0; right: 0;
+      padding: 6px 10px 10px;
+    }
+    .pgc-date-row {
+      display: flex; align-items: center; gap: 5px; margin-bottom: 5px;
+    }
+    .pgc-date-year {
+      font-size: 0.38rem; font-weight: 900; color: rgba(255,255,255,0.5);
+      writing-mode: vertical-rl; border-right: 1px solid rgba(255,255,255,0.22);
+      padding-right: 3px; line-height: 1;
+    }
+    .pgc-date-main { font-size: 0.75rem; font-weight: 900; color: white; line-height: 1; }
+    .pgc-platform { font-size: 0.4rem; font-weight: 800; color: rgba(255,255,255,0.55); text-transform: uppercase; letter-spacing: 0.08em; }
+    .pgc-gift-name-lbl { font-size: 0.6rem; font-weight: 800; color: rgba(255,255,255,0.88); letter-spacing: 0.04em; }
+    .pgc-from { font-size: 0.48rem; color: rgba(255,255,255,0.55); margin-top: 2px; }
+    .pgc-from .pgc-sender { color: rgba(255,220,80,0.9); font-weight: 900; }
+
+    .post-header {
+      padding: 18px 20px 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .post-avatar {
+      width: 46px; height: 46px;
+      background: linear-gradient(135deg, #F3E8FF, #FFE4F5);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem;
+      flex-shrink: 0;
+    }
+    .post-meta .poster-name { font-weight: 800; font-size: 0.95rem; }
+    .post-meta .post-sub { font-size: 0.75rem; color: #aaa; margin-top: 2px; }
+    .post-tag {
+      margin-left: auto;
+      background: linear-gradient(135deg, #FF6B9D, #A855F7);
+      color: white;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    .post-gift-banner {
+      margin: 0 20px 14px;
+      background: linear-gradient(135deg, #F3E8FF, #FFF0F8);
+      border-radius: 16px;
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .post-gift-emoji { font-size: 2.4rem; }
+    .post-gift-info .gift-name { font-weight: 800; font-size: 1rem; }
+    .post-gift-info .gift-price { color: var(--primary); font-weight: 700; font-size: 0.85rem; margin-top: 2px; }
+    .post-gift-info .gift-relation { font-size: 0.75rem; color: #aaa; margin-top: 2px; }
+
+    .post-body {
+      padding: 0 20px 14px;
+      font-size: 0.92rem;
+      line-height: 1.75;
+      color: #333;
+    }
+
+    .post-footer {
+      padding: 12px 20px 16px;
+      border-top: 1px solid #f5f5f5;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .post-like-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: none;
+      border: 2px solid #f0e8ff;
+      border-radius: 50px;
+      padding: 7px 16px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #A855F7;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+    .post-like-btn:hover, .post-like-btn.liked {
+      background: linear-gradient(135deg,#A855F7,#7c3aed);
+      color: white;
+      border-color: transparent;
+    }
+    .post-time { font-size: 0.75rem; color: #bbb; margin-left: auto; }
+
+    /* ===== New Post Button ===== */
+    .new-post-fab {
+      position: fixed;
+      bottom: 28px;
+      right: 24px;
+      background: linear-gradient(135deg, #FF6B9D, #A855F7);
+      color: white;
+      border: none;
+      border-radius: 50px;
+      padding: 15px 24px;
+      font-size: 0.95rem;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 8px 28px rgba(255,107,157,0.45);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      z-index: 200;
+      transition: all 0.25s;
+    }
+    .new-post-fab:hover { transform: scale(1.05); }
+
+    /* ===== Post Modal ===== */
+    .post-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      z-index: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    .post-modal-overlay.open { opacity: 1; pointer-events: all; }
+    .post-modal {
+      background: white;
+      border-radius: 28px;
+      padding: 32px;
+      max-width: 540px;
+      width: 100%;
+      transform: scale(0.92);
+      transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .post-modal-overlay.open .post-modal { transform: scale(1); }
+    .pm-title { font-size: 1.2rem; font-weight: 900; margin-bottom: 24px; display: flex; align-items: center; gap: 10px; }
+    .pm-field { margin-bottom: 18px; }
+    .pm-label { font-size: 0.82rem; font-weight: 700; color: #666; margin-bottom: 6px; }
+    .pm-input {
+      width: 100%;
+      padding: 11px 16px;
+      border: 2px solid #eee;
+      border-radius: 14px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .pm-input:focus { border-color: #A855F7; }
+    .pm-textarea {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid #eee;
+      border-radius: 14px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      outline: none;
+      resize: vertical;
+      min-height: 110px;
+      transition: border-color 0.2s;
+      line-height: 1.7;
+    }
+    .pm-textarea:focus { border-color: #A855F7; }
+    .pm-select {
+      width: 100%;
+      padding: 11px 16px;
+      border: 2px solid #eee;
+      border-radius: 14px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      outline: none;
+      background: white;
+      transition: border-color 0.2s;
+    }
+    .pm-select:focus { border-color: #A855F7; }
+    .pm-emoji-row { display: flex; gap: 10px; flex-wrap: wrap; }
+    .pm-emoji-btn {
+      width: 44px; height: 44px;
+      border-radius: 12px;
+      background: #f5f0ff;
+      border: 2px solid transparent;
+      font-size: 1.4rem;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s;
+    }
+    .pm-emoji-btn:hover, .pm-emoji-btn.sel { border-color: #A855F7; background: #ede9ff; }
+    .pm-btns { display: flex; gap: 12px; margin-top: 8px; }
+
+    /* ===== Loading ===== */
+    .loading-spinner {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 60px;
+      color: #A855F7;
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    /* ===== Empty ===== */
+    .empty-feed {
+      text-align: center;
+      padding: 60px 20px;
+      color: #aaa;
+    }
+    .empty-feed .ef-icon { font-size: 3rem; margin-bottom: 12px; }
+
+    /* ===== Filter bar ===== */
+    .filter-bar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    .fb-chip {
+      padding: 6px 14px;
+      border-radius: 50px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      border: 2px solid #e0d4f7;
+      background: white;
+      color: #888;
+      transition: all 0.2s;
+    }
+    .fb-chip.active {
+      border-color: #A855F7;
+      color: #A855F7;
+      background: #f5eeff;
+    }
+    .fb-chip:hover:not(.active) { border-color: #A855F7; color: #A855F7; }
+  </style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="site-header">
+  <div class="header-inner">
+    <a href="index.html" class="logo">
+      
+      <span class="logo-text">OKURIATO</span>
+    </a>
+    <nav class="header-nav">
+      <a href="index.html" class="btn btn-outline"><i class="fas fa-home"></i> トップ</a>
+      <a href="giftalk.html" class="btn btn-outline" style="border-color:var(--secondary);color:var(--secondary);">
+        <i class="fas fa-robot"></i> Giftalk
+      </a>
+      <a href="reactions.html" class="btn btn-outline"><i class="fas fa-bell"></i> リアクション</a>
+    </nav>
+    <button class="nav-hamburger" id="navHamburger" onclick="toggleDrawer()" aria-label="メニュー">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+<div class="nav-drawer" id="navDrawer">
+  <div class="nav-drawer-backdrop" onclick="closeDrawer()"></div>
+  <div class="nav-drawer-panel">
+    <a href="gift.html" class="nav-drawer-link primary"><i class="fas fa-gift"></i> ギフトを贈る</a>
+    <a href="giftalk.html" class="nav-drawer-link" style="color:var(--secondary);"><i class="fas fa-robot"></i> Giftalk</a>
+    <a href="reactions.html" class="nav-drawer-link"><i class="fas fa-bell"></i> リアクション</a>
+    <a href="index.html" class="nav-drawer-link"><i class="fas fa-home"></i> トップ</a>
+  </div>
+</div>
+
+<!-- Hero -->
+<section class="community-hero">
+  <h1>📸 みんなのギフト体験</h1>
+  <p>もらって嬉しかった！感動した！<br>あなたのギフト体験を投稿してシェアしよう</p>
+  <div class="hero-stats">
+    <div class="hero-stat">
+      <div class="num" id="totalPosts">–</div>
+      <div class="label">投稿数</div>
+    </div>
+    <div class="hero-stat">
+      <div class="num" id="totalLikes">–</div>
+      <div class="label">いいね数</div>
+    </div>
+    <div class="hero-stat">
+      <div class="num">毎日</div>
+      <div class="label">更新中</div>
+    </div>
+  </div>
+</section>
+
+<!-- Main -->
+<main class="community-main">
+
+  <!-- Tabs -->
+  <div class="comm-tabs">
+    <button class="comm-tab active" onclick="setTab('recent', this)">🕐 新着順</button>
+    <button class="comm-tab" onclick="setTab('popular', this)">🔥 人気順</button>
+    <button class="comm-tab" onclick="setTab('cheer', this)">💪 応援</button>
+    <button class="comm-tab" onclick="setTab('thanks', this)">🙏 感謝</button>
+    <button class="comm-tab" onclick="setTab('love', this)">💕 愛情</button>
+    <button class="comm-tab" onclick="setTab('care', this)">🫶 労い</button>
+  </div>
+
+  <!-- Post Feed -->
+  <div id="postFeed" class="post-feed">
+    <div class="loading-spinner"><i class="fas fa-circle-notch fa-spin"></i> &nbsp;読み込み中...</div>
+  </div>
+
+</main>
+
+<!-- New Post FAB -->
+<button class="new-post-fab" onclick="openPostModal()">
+  <i class="fas fa-plus"></i> もらったを投稿する
+</button>
+
+<!-- Post Modal -->
+<div class="post-modal-overlay" id="postModalOverlay" onclick="closeModalIfBg(event)">
+  <div class="post-modal" id="postModal">
+    <div class="pm-title">🎁 ギフト体験を投稿</div>
+
+    <div class="pm-field">
+      <div class="pm-label">ニックネーム *</div>
+      <input class="pm-input" id="pmName" placeholder="例: はなこ" maxlength="20">
+    </div>
+
+    <div class="pm-field">
+      <div class="pm-label">あなたのアイコン絵文字</div>
+      <div class="pm-emoji-row" id="pmAvatarRow">
+        <!-- rendered by JS -->
+      </div>
+    </div>
+
+    <div class="pm-field">
+      <div class="pm-label">もらったギフト名 *</div>
+      <input class="pm-input" id="pmGiftName" placeholder="例: お花のブーケ">
+    </div>
+
+    <div class="pm-field">
+      <div class="pm-label">ギフトの絵文字</div>
+      <div class="pm-emoji-row" id="pmGiftEmojiRow">
+        <!-- rendered by JS -->
+      </div>
+    </div>
+
+    <div class="pm-field">
+      <div class="pm-label">贈り手との関係</div>
+      <select class="pm-select" id="pmRelation">
+        <option value="友人">友人・友達</option>
+        <option value="恋人">恋人</option>
+        <option value="家族">家族</option>
+        <option value="上司・先輩">上司・先輩</option>
+        <option value="同僚・後輩">同僚・後輩</option>
+        <option value="その他">その他</option>
+      </select>
+    </div>
+
+    <div class="pm-field">
+      <div class="pm-label">感情タグ</div>
+      <select class="pm-select" id="pmEmotion">
+        <option value="応援">💪 応援してもらった</option>
+        <option value="感謝">🙏 感謝された</option>
+        <option value="労い">🫶 労ってもらった</option>
+        <option value="愛情">💕 愛情を感じた</option>
+        <option value="誕生日">🎂 誕生日プレゼント</option>
+        <option value="お祝い">🎉 お祝いされた</option>
+        <option value="下心（笑）">😏 なんか下心感じた（笑）</option>
+        <option value="その他">🎲 その他</option>
+      </select>
+    </div>
+
+    <div class="pm-field">
+      <div class="pm-label">ギフト体験を投稿 * <span style="font-weight:400;color:#aaa;">（何をもらって、どんな気持ちだったか）</span></div>
+      <textarea class="pm-textarea" id="pmMessage" placeholder="例: 友達がサプライズで花束を贈ってくれました！アバター演出が可愛すぎて泣きそうになりました😭"></textarea>
+    </div>
+
+    <div class="pm-btns">
+      <button class="btn btn-primary btn-full" onclick="submitPost()">
+        <i class="fas fa-paper-plane"></i> 投稿する
+      </button>
+      <button class="btn btn-outline" onclick="closePostModal()" style="white-space:nowrap;">
+        キャンセル
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== State =====
+let allPosts = [];
+let currentTab = 'recent';
+let selectedAvatarEmoji = '😊';
+let selectedGiftEmoji = '🎁';
+const myUserId = 'u_' + Math.random().toString(36).substr(2,8);
+
+const AVATAR_EMOJIS = ['😊','😄','🥰','😎','🤗','😇','🌸','🌟','🦊','🐼','🐱','🎭'];
+const GIFT_EMOJIS   = ['🎁','💐','🍰','☕','🧸','💍','🍷','🛁','📚','🍫','✈️','🎮','🥩','📷','🕯️','🍓'];
+
+// ===== デモ投稿（バックエンドが繋がるまでの表示用） =====
+const DEMO_POSTS = [
+  { id:'d1', poster_name:'さとみ', gift_name:'Brew Tea Co. ティーバッグ', gift_emoji:'🍵', emotion_tag:'感謝', sender_relation:'友人', message:'友達からお茶のギフトが届きました！アバター演出が可愛くて感動しました😭 こんなに嬉しいギフトは初めて。', poster_emoji:'😊', likes:12, created_at: new Date(Date.now()-86400000).toISOString() },
+  { id:'d2', poster_name:'たくみ', gift_name:'TAMANOHADA ソープ', gift_emoji:'🌿', emotion_tag:'労い', sender_relation:'パートナー', message:'お疲れ様って言いたかったみたい。石鹸の香りが最高で、使うたびに思い出しちゃう✨', poster_emoji:'🥰', likes:8, created_at: new Date(Date.now()-172800000).toISOString() },
+  { id:'d3', poster_name:'はるか', gift_name:'アンファン スズランクッキー缶', gift_emoji:'🌷', emotion_tag:'応援', sender_relation:'同僚', message:'就活頑張ってってメッセージと一緒に贈ってもらいました！缶がかわいすぎて捨てられない笑', poster_emoji:'😄', likes:21, created_at: new Date(Date.now()-259200000).toISOString() },
+  { id:'d4', poster_name:'りょうた', gift_name:'猿田彦珈琲 ドリップバッグ', gift_emoji:'☕', emotion_tag:'感謝', sender_relation:'上司', message:'プロジェクト完了のお礼に。コーヒー好きな私のためにチョイスしてくれたのが嬉しすぎる☕', poster_emoji:'🙏', likes:5, created_at: new Date(Date.now()-345600000).toISOString() },
+];
+
+// ===== Load Posts =====
+async function loadPosts() {
+  const localPosts = loadLocalPosts();
+  try {
+    const res = await fetch('tables/gift_posts?limit=50&sort=created_at');
+    const data = await res.json();
+    const remotePosts = data.data || [];
+    const remoteIds = new Set(remotePosts.map(p => p.id));
+    const merged = [...localPosts.filter(p => !remoteIds.has(p.id)), ...remotePosts];
+    allPosts = merged.length > 0 ? merged : DEMO_POSTS;
+  } catch(e) {
+    allPosts = localPosts.length > 0 ? [...localPosts, ...DEMO_POSTS] : DEMO_POSTS;
+  }
+  renderFeed();
+  updateStats();
+}
+
+// ===== 受け取り側から共有された場合の自動入力 =====
+function checkShareParam() {
+  try {
+    const params = new URLSearchParams(location.search);
+    if (params.get('share') !== '1') return;
+    const raw = sessionStorage.getItem('communityShareGift');
+    if (!raw) return;
+    const info = JSON.parse(raw);
+    sessionStorage.removeItem('communityShareGift');
+
+    // フォームを開いてギフト情報を自動入力
+    openPostModal();
+    setTimeout(() => {
+      const giftNameEl = document.getElementById('pmGiftName');
+      const msgEl = document.getElementById('pmMessage');
+      if (giftNameEl) giftNameEl.value = info.gift_name || '';
+      if (msgEl && info.sender) {
+        msgEl.value = `${info.sender}さんから「${info.gift_name}」が届きました！`;
+      }
+      // 絵文字も設定
+      if (info.gift_emoji) {
+        selectedGiftEmoji = info.gift_emoji;
+        const rows = document.getElementById('pmGiftEmojiRow');
+        if (rows) {
+          rows.querySelectorAll('.emoji-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.emoji === info.gift_emoji);
+          });
+        }
+      }
+    }, 100);
+  } catch(e) {}
+}
+
+function updateStats() {
+  document.getElementById('totalPosts').textContent = allPosts.length + '+';
+  const totalLikes = allPosts.reduce((s,p) => s + (p.likes || 0), 0);
+  document.getElementById('totalLikes').textContent = totalLikes + '+';
+}
+
+// ===== Tabs =====
+function setTab(tab, el) {
+  currentTab = tab;
+  document.querySelectorAll('.comm-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  renderFeed();
+}
+
+function renderFeed() {
+  let posts = [...allPosts];
+
+  // Filter
+  const emotionMap = {
+    cheer: '応援', thanks: '感謝', love: '愛情', care: '労い',
+  };
+  if (emotionMap[currentTab]) {
+    posts = posts.filter(p => p.emotion_tag && p.emotion_tag.includes(emotionMap[currentTab]));
+  }
+
+  // Sort
+  if (currentTab === 'popular') {
+    posts.sort((a,b) => (b.likes||0) - (a.likes||0));
+  } else {
+    posts.sort((a,b) => (b.created_at||0) - (a.created_at||0));
+  }
+
+  const feed = document.getElementById('postFeed');
+  if (posts.length === 0) {
+    feed.innerHTML = `<div class="empty-feed"><div class="ef-icon">📭</div><p>まだ投稿がありません。<br>最初の投稿者になりませんか？</p></div>`;
+    return;
+  }
+
+  feed.innerHTML = posts.map(p => renderPostCard(p)).join('');
+}
+
+// ===================================================
+// COMM_THEMES — BABYMONSTERポスタースタイル対応
+// ===================================================
+const COMM_THEMES = {
+  aurora: { bg: ['#b388ff','#82b1ff','#ce93d8','#f48fb1'], accent: '#7c4dff',  textColor: 'white', subColor: 'rgba(255,255,255,0.7)' },
+  sunset: { bg: ['#ff6e7f','#bfe9ff','#ff9a8b','#fbc2eb'], accent: '#ff4757',  textColor: 'white', subColor: 'rgba(255,255,255,0.7)' },
+  ocean:  { bg: ['#1a237e','#283593','#0288d1','#00acc1'], accent: '#4fc3f7',  textColor: 'white', subColor: 'rgba(255,255,255,0.65)' },
+  forest: { bg: ['#1b5e20','#2e7d32','#66bb6a','#a5d6a7'], accent: '#69f0ae', textColor: 'white', subColor: 'rgba(255,255,255,0.7)' },
+  night:  { bg: ['#0a0015','#0d0025','#1a0035','#2d1254'], accent: '#A855F7', textColor: 'white', subColor: 'rgba(200,180,255,0.75)' },
+  gold:   { bg: ['#ff6f00','#f9a825','#ffd600','#ffab40'], accent: '#ff6f00', textColor: 'rgba(30,15,0,0.9)', subColor: 'rgba(30,15,0,0.55)' },
+};
+
+// Canvasにポスター背景を描く（community card用）
+function drawCommCardBg(canvas, themeId) {
+  const t = COMM_THEMES[themeId] || COMM_THEMES.aurora;
+  const W = canvas.width;
+  const H = canvas.height;
+  const ctx = canvas.getContext('2d');
+
+  // Main diagonal gradient
+  const grad = ctx.createLinearGradient(0, 0, W*0.8, H);
+  const [c0,c1,c2,c3] = t.bg;
+  grad.addColorStop(0, c0); grad.addColorStop(0.38, c1);
+  grad.addColorStop(0.72, c2); grad.addColorStop(1, c3);
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, W, H);
+
+  // Radial glow
+  const g1 = ctx.createRadialGradient(W*0.75, H*0.18, 0, W*0.75, H*0.18, W*0.65);
+  g1.addColorStop(0, 'rgba(255,255,255,0.25)'); g1.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = g1; ctx.fillRect(0, 0, W, H);
+
+  // Accent glow bottom left
+  const g2 = ctx.createRadialGradient(W*0.2, H*0.82, 0, W*0.2, H*0.82, W*0.45);
+  g2.addColorStop(0, `${t.accent}40`); g2.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = g2; ctx.fillRect(0, 0, W, H);
+
+  // Particles
+  const seed = Object.keys(COMM_THEMES).indexOf(themeId) * 1000;
+  for (let i = 0; i < 50; i++) {
+    const sx = ((seed*7+i*83+i*i*3)%1000)/1000*W;
+    const sy = ((seed*13+i*61+i*i*7)%1000)/1000*H;
+    const r  = 0.5 + ((seed*3+i*17)%100)/100*2.2;
+    const a  = 0.06 + ((seed*11+i*29)%100)/100*0.22;
+    ctx.beginPath(); ctx.arc(sx, sy, r, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(255,255,255,${a})`; ctx.fill();
+  }
+}
+
+// 投稿カードレンダリング
+function renderPostCard(p) {
+  const likedByArr = p.liked_by ? p.liked_by.split(',').filter(Boolean) : [];
+  const isLiked    = likedByArr.includes(myUserId);
+  const timeAgo    = getTimeAgo(p.created_at);
+
+  const hasCard    = !!(p.card_theme || p.gift_emoji);
+  const themeId    = p.card_theme || 'aurora';
+  const theme      = COMM_THEMES[themeId] || COMM_THEMES.aurora;
+  const giftName   = p.gift_name   || 'ギフト';
+  const giftEmoji  = p.gift_emoji  || '🎁';
+  const senderName = p.sender_name || 'だれか';
+  const headMain   = giftName.length <= 6 ? giftName : giftName.slice(0,5) + '…';
+  const now        = p.created_at ? new Date(Number(p.created_at)) : new Date();
+  const yy  = now.getFullYear();
+  const mm  = String(now.getMonth()+1).padStart(2,'0');
+  const dd  = String(now.getDate()).padStart(2,'0');
+  const uid = `pgc-${p.id || Math.random().toString(36).slice(2)}`;
+
+  const giftCardHtml = hasCard ? `
+    <div class="post-gift-card-wrap">
+      <div class="post-gift-card-outer">
+        <div class="post-gift-card" id="${uid}">
+          <canvas class="pgc-bg-canvas" id="${uid}-cv"></canvas>
+          <div class="pgc-overlay"></div>
+
+          <!-- Brand strip -->
+          <div class="pgc-top">
+            <span class="pgc-brand">OKURIATO</span>
+            <span class="pgc-brand-badge">${giftEmoji}</span>
+          </div>
+
+          <!-- Headline -->
+          <div class="pgc-headline">
+            <div class="pgc-eyebrow">贈り物が届きました</div>
+            <div class="pgc-headline-main" style="color:${theme.textColor};">${escHtml(headMain)}</div>
+            <div class="pgc-headline-sub" style="color:${theme.subColor};">✦ ${giftEmoji} もらいました ✦</div>
+          </div>
+
+          <!-- Center emoji -->
+          <div class="pgc-emoji-center">${giftEmoji}</div>
+
+          <!-- Bottom info -->
+          <div class="pgc-bottom">
+            <div class="pgc-date-row">
+              <div class="pgc-date-year">${yy}</div>
+              <div>
+                <div class="pgc-date-main">${mm}/${dd}</div>
+                <div class="pgc-platform">OKURIATO</div>
+              </div>
+            </div>
+            <div class="pgc-gift-name-lbl">${escHtml(giftName)}</div>
+            <div class="pgc-from">from <span class="pgc-sender">${escHtml(senderName)}</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  ` : `
+    <div class="post-gift-banner">
+      <div class="post-gift-emoji">${giftEmoji}</div>
+      <div class="post-gift-info">
+        <div class="gift-name">${escHtml(giftName)}</div>
+        ${p.gift_price ? `<div class="gift-price">¥${Number(p.gift_price).toLocaleString()}</div>` : ''}
+        <div class="gift-relation">${escHtml(p.sender_relation || '')} から</div>
+      </div>
+    </div>
+  `;
+
+  // 匿名バッジ
+  const anonBadge = p.is_anonymous
+    ? `<span style="background:rgba(168,85,247,0.1);color:#A855F7;font-size:0.62rem;font-weight:800;padding:2px 8px;border-radius:8px;margin-left:6px;border:1px solid rgba(168,85,247,0.2);">🫥 匿名</span>`
+    : '';
+
+  const cardHtml = `
+    <article class="post-card">
+      <div class="post-header">
+        <div class="post-avatar">${p.poster_emoji || '😊'}</div>
+        <div class="post-meta">
+          <div class="poster-name">${escHtml(p.poster_name || '匿名さん')}${anonBadge}</div>
+          <div class="post-sub">${timeAgo}</div>
+        </div>
+        ${p.emotion_tag ? `<div class="post-tag">${escHtml(p.emotion_tag)}</div>` : (hasCard ? `<div class="post-tag">🎴 カード</div>` : '')}
+      </div>
+
+      ${giftCardHtml}
+
+      ${p.comment || p.message
+        ? `<div class="post-body">${escHtml(p.comment || p.message || '')}</div>`
+        : ''}
+
+      <div class="post-footer">
+        <button class="post-like-btn ${isLiked ? 'liked' : ''}" onclick="toggleLike('${p.id}', this)">
+          <i class="fas fa-heart"></i>
+          <span class="like-count">${p.likes || 0}</span>
+        </button>
+        <div class="post-time">${timeAgo}</div>
+      </div>
+    </article>
+  `;
+
+  // Canvasを非同期で描画（DOM挿入後）
+  if (hasCard) {
+    requestAnimationFrame(() => {
+      const cv = document.getElementById(`${uid}-cv`);
+      const card = document.getElementById(uid);
+      if (cv && card) {
+        cv.width  = card.offsetWidth  || 160;
+        cv.height = card.offsetHeight || Math.round(160 * 14/9);
+        drawCommCardBg(cv, themeId);
+      }
+    });
+  }
+
+  return cardHtml;
+}
+
+// ===== Like =====
+async function toggleLike(postId, btn) {
+  const post = allPosts.find(p => p.id === postId);
+  if (!post) return;
+
+  const likedByArr = post.liked_by ? post.liked_by.split(',').filter(Boolean) : [];
+  const alreadyLiked = likedByArr.includes(myUserId);
+
+  let newLikes = (post.likes || 0);
+  let newLikedBy = [...likedByArr];
+
+  if (alreadyLiked) {
+    newLikes = Math.max(0, newLikes - 1);
+    newLikedBy = newLikedBy.filter(id => id !== myUserId);
+  } else {
+    newLikes++;
+    newLikedBy.push(myUserId);
+  }
+
+  // Optimistic update
+  post.likes = newLikes;
+  post.liked_by = newLikedBy.join(',');
+  btn.classList.toggle('liked', !alreadyLiked);
+  btn.querySelector('.like-count').textContent = newLikes;
+
+  try {
+    await fetch(`tables/gift_posts/${postId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ likes: newLikes, liked_by: post.liked_by }),
+    });
+  } catch(e) { console.warn('Like update failed', e); }
+}
+
+// ===== New Post Modal =====
+function openPostModal() {
+  renderEmojiPicker('pmAvatarRow', AVATAR_EMOJIS, selectedAvatarEmoji, (e) => { selectedAvatarEmoji = e; });
+  renderEmojiPicker('pmGiftEmojiRow', GIFT_EMOJIS, selectedGiftEmoji, (e) => { selectedGiftEmoji = e; });
+  document.getElementById('postModalOverlay').classList.add('open');
+}
+function closePostModal() {
+  document.getElementById('postModalOverlay').classList.remove('open');
+}
+function closeModalIfBg(e) {
+  if (e.target === document.getElementById('postModalOverlay')) closePostModal();
+}
+
+function renderEmojiPicker(containerId, emojis, selected, onSelect) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = emojis.map(em => `
+    <button class="pm-emoji-btn ${em === selected ? 'sel' : ''}" onclick="pickEmoji('${containerId}', '${em}', this)">
+      ${em}
+    </button>
+  `).join('');
+  container._onSelect = onSelect;
+}
+
+function pickEmoji(containerId, emoji, btn) {
+  document.querySelectorAll(`#${containerId} .pm-emoji-btn`).forEach(b => b.classList.remove('sel'));
+  btn.classList.add('sel');
+  if (containerId === 'pmAvatarRow') selectedAvatarEmoji = emoji;
+  else selectedGiftEmoji = emoji;
+}
+
+function loadLocalPosts() {
+  try {
+    return JSON.parse(localStorage.getItem('okuriato_local_posts') || '[]');
+  } catch(e) { return []; }
+}
+
+function saveLocalPosts(posts) {
+  try { localStorage.setItem('okuriato_local_posts', JSON.stringify(posts.slice(0, 50))); } catch(e) {}
+}
+
+async function submitPost() {
+  const name = document.getElementById('pmName').value.trim();
+  const giftName = document.getElementById('pmGiftName').value.trim();
+  const message = document.getElementById('pmMessage').value.trim();
+  const relation = document.getElementById('pmRelation').value;
+  const emotion = document.getElementById('pmEmotion').value;
+
+  if (!name || !giftName || !message) {
+    showToast('⚠️ ニックネーム・ギフト名・投稿文を入力してください');
+    return;
+  }
+
+  const btn = document.querySelector('.pm-btns .btn-primary');
+  btn.innerHTML = '投稿中...';
+  btn.disabled = true;
+
+  const newPost = {
+    id: 'local_' + Date.now(),
+    poster_name: name,
+    poster_emoji: selectedAvatarEmoji,
+    gift_name: giftName,
+    gift_emoji: selectedGiftEmoji,
+    message,
+    sender_relation: relation,
+    emotion_tag: emotion,
+    likes: 0,
+    liked_by: '',
+    created_at: new Date().toISOString(),
+  };
+
+  // バックエンドへの保存を試みる（失敗してもローカル保存で続行）
+  try {
+    const res = await fetch('tables/gift_posts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...newPost, gift_price: 0, image_emoji: selectedGiftEmoji }),
+    });
+    const saved = await res.json();
+    if (saved && saved.id) newPost.id = saved.id;
+  } catch(e) {
+    // バックエンドなしでもローカル保存で続行
+  }
+
+  // ローカルストレージに保存してフィードに追加
+  const localPosts = loadLocalPosts();
+  localPosts.unshift(newPost);
+  saveLocalPosts(localPosts);
+
+  allPosts.unshift(newPost);
+  renderFeed();
+  updateStats();
+  closePostModal();
+  showToast('🎉 投稿しました！');
+  ['pmName','pmGiftName','pmMessage'].forEach(id => document.getElementById(id).value = '');
+
+  btn.innerHTML = '<i class="fas fa-paper-plane"></i> 投稿する';
+  btn.disabled = false;
+}
+
+// ===== Utils =====
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function getTimeAgo(ts) {
+  if (!ts) return '少し前';
+  const diff = Date.now() - ts;
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return 'たった今';
+  if (m < 60) return `${m}分前`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}時間前`;
+  const d = Math.floor(h / 24);
+  if (d < 30) return `${d}日前`;
+  return `${Math.floor(d/30)}ヶ月前`;
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ===== Init =====
+loadPosts();
+checkShareParam();
+</script>
+<script>
+function toggleDrawer(){const d=document.getElementById('navDrawer'),h=document.getElementById('navHamburger');d.classList.toggle('open');h.classList.toggle('open');document.body.style.overflow=d.classList.contains('open')?'hidden':'';}
+function closeDrawer(){const d=document.getElementById('navDrawer'),h=document.getElementById('navHamburger');d.classList.remove('open');h.classList.remove('open');document.body.style.overflow='';}
+</script>
+</body>
+</html>

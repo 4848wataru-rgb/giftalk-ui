@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-label="Giftalk icon">
+  <!-- ギフト箱アイコン（実画像の青紫色ロゴのアイコン部分を再現） -->
+  <!-- ギフト箱の胴体 -->
+  <rect x="7" y="27" width="34" height="18" rx="3"
+    fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/>
+  <!-- ギフト箱のフタ (帯) -->
+  <rect x="5" y="19" width="38" height="10" rx="2.5"
+    fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/>
+  <!-- 中央の縦線 -->
+  <line x1="24" y1="19" x2="24" y2="45"
+    stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/>
+  <!-- フタの横線 -->
+  <line x1="5" y1="24" x2="43" y2="24"
+    stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/>
+  <!-- リボン左ループ -->
+  <path d="M24 19 C20 12 11 10 13 15.5 C14.5 19 22 19 24 19"
+    fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- リボン右ループ -->
+  <path d="M24 19 C28 12 37 10 35 15.5 C33.5 19 26 19 24 19"
+    fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
